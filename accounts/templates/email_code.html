@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: #f0ece4;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wrapper {
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .mail-container {
+            background: #faf8f4;
+            border-radius: 2px;
+            overflow: hidden;
+            box-shadow: 0 4px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .top-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #b8956a, #d4a96a, #c4845a);
+        }
+
+        .mail-body {
+            padding: 48px 48px 40px;
+        }
+
+        .brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #b8956a;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, #d4c4b0, transparent);
+        }
+
+        .greeting {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 32px;
+            font-weight: 300;
+            color: #2a2018;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .text {
+            font-size: 14.5px;
+            color: #6b5f52;
+            line-height: 1.75;
+            font-weight: 300;
+        }
+
+        .text + .text {
+            margin-top: 10px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d4c4b0, transparent);
+            margin: 32px 0;
+        }
+
+        .code-label {
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #b8956a;
+            font-weight: 500;
+            margin-bottom: 14px;
+        }
+
+        .code-block {
+            background: #fff;
+            border: 1px solid #e8ddd0;
+            border-radius: 2px;
+            padding: 28px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #b8956a, #d4a96a, #c4845a);
+        }
+
+        .code {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 44px;
+            font-weight: 600;
+            color: #2a2018;
+            letter-spacing: 0.18em;
+            line-height: 1;
+        }
+
+        .code-validity {
+            font-size: 12px;
+            color: #a0917f;
+            margin-top: 10px;
+            font-weight: 300;
+            letter-spacing: 0.03em;
+        }
+
+        .note {
+            font-size: 13px;
+            color: #a0917f;
+            font-weight: 300;
+            line-height: 1.65;
+            margin-top: 28px;
+            padding: 16px 20px;
+            background: #f5f0e8;
+            border-left: 2px solid #d4c4b0;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .sign {
+            margin-top: 36px;
+        }
+
+        .sign .text {
+            color: #8a7a6a;
+        }
+
+        .sign-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: #2a2018;
+            margin-top: 6px;
+        }
+
+        .footer {
+            padding: 20px 48px;
+            border-top: 1px solid #e8ddd0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 12px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #c4b4a0;
+        }
+
+        .footer-note {
+            font-size: 11px;
+            color: #c4b4a0;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="mail-container">
+            <div class="top-bar"></div>
+
+            <div class="mail-body">
+                <div class="brand">TailorBook</div>
+
+                <div class="greeting">Bienvenue !</div>
+
+                <div class="divider"></div>
+
+                <p class="text">Merci de vous être inscrit sur TailorBook. Pour confirmer votre adresse e-mail, veuillez utiliser le code de vérification ci-dessous.</p>
+
+                <div class="divider"></div>
+
+                <div class="code-label">Code de vérification</div>
+                <div class="code-block">
+                    <div class="code">{{ code }}</div>
+                    <div class="code-validity">Valable pendant 15 minutes</div>
+                </div>
+
+                <div class="note">
+                    Si vous n'avez pas créé de compte sur TailorBook, vous pouvez ignorer cet e-mail en toute sécurité.
+                </div>
+
+                <div class="sign">
+                    <p class="text">Cordialement,</p>
+                    <div class="sign-name">L'équipe TailorBook</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <span class="footer-brand">TailorBook</span>
+                <span class="footer-note">© 2025 · Tous droits réservés</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

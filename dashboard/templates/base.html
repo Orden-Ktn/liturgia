@@ -1,0 +1,237 @@
+{% load form_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liturgia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/static/css/dash.css">
+    <link rel="icon" type="image/png" href="/static/images/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-section">
+            <div class="logo-content">
+                <img class="logo-icon" src="/static/images/logo.png" alt="">
+                <span class="logo-text">Liturgia</span>
+            </div>
+        </div>
+        
+        <nav class="nav-menu">
+
+            <!-- Dashboard -->
+            <div class="nav-item">
+                <a href="{% url 'dashboard' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="ri-dashboard-line nav-icon"></i>
+                    <span>Tableau de bord</span>
+                </a>
+            </div>
+
+            {% if request.user.is_superuser or request.user.role == 'cure' %}
+                <!-- Messes -->
+                <div class="nav-item">
+                    <a href="{% url 'messes' %}" 
+                    class="nav-link {% if request.resolver_match.url_name == 'messes' %}active{% endif %}">
+                        <i class="ri-calendar-line nav-icon"></i>
+                        <span>Messes</span>
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Intentions -->
+            <div class="nav-item">
+                <a href="{% url 'intentions' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'intentions' %}active{% endif %}">
+                    <i class="ri-heart-line nav-icon"></i>
+                    <span>Demande de messe</span>
+                </a>
+            </div>
+
+            <!-- Finances -->
+            <!-- <div class="nav-item">
+                <a href="" 
+                class="nav-link {% if request.resolver_match.url_name == 'finances' %}active{% endif %}">
+                    <i class="ri-money-dollar-circle-line nav-icon"></i>
+                    <span>Trésorerie</span>
+                </a>
+            </div> -->
+
+
+            <!-- Utilisateurs (curé seulement) -->
+            {% if request.user.is_superuser or request.user.role == 'cure' %}
+            <div class="nav-item">
+                <a href="{% url 'users' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'users' %}active{% endif %}">
+                    <i class="ri-user-settings-line nav-icon"></i>
+                    <span>Utilisateurs</span>
+                </a>
+            </div>
+            {% endif %}
+
+        </nav>
+
+
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <img class="avatar-icon" src="/static/images/user.png" alt="">
+                </div>
+                <div class="user-details">
+                    <div class="user-name">{{ request.user.username }}</div>
+                    <div class="user-role">{{ request.user.role }}</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="ri-menu-line"></i>
+                </button>
+            </div>
+            
+            <div class="topbar-right">
+                <button class="notification-btn" onclick="openModalProfil()" title="Mon profil">
+                    <i class="ri-user-line"></i>
+                </button>
+                <button class="notification-btn" onclick="openModalLogout()" title="Déconnexion">
+                    <i class="ri-logout-box-line"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content" id="content">
+            {% if messages %}
+                <div class="alert-container">
+                    {% for message in messages %}
+                        <div class="alert {{ message.tags }}">
+                            <button class="alert-close" onclick="this.parentElement.classList.add('hiding'); setTimeout(() => this.parentElement.remove(), 400);">
+                                <i class="ri-close-line"></i>
+                            </button>
+                            <h4 class="alert-title">
+                                <i class="ri-information-line"></i> Liturgia
+                            </h4>
+                            <div class="alert-message">{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}
+
+            {% endblock %}
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modalLogout">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Déconnexion</h3>
+                <button class="modal-close" onclick="closeModalLogout()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            
+            <form id="">
+                <div class="modal-body" style="grid-template-columns: repeat(1, 1fr);">
+                    Êtes-vous sûr de vouloir vous déconnecter ?
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalLogout()">
+                        Non
+                    </button>
+                    <a href="{% url 'deconnexion' %}" type="button" class="btn-modal btn-modal-submit" style="text-decoration: none; text-align: center;">
+                        Oui
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalProfil" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Mon profil</h3>
+                <button class="modal-close" onclick="closeModalProfil()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'update_profil' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+
+                    {% if profil_errors %}
+                        <div style="color:red; margin-bottom:1rem;">
+                            {% for error in profil_errors %}
+                                <p style="margin:0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-field">
+                        <label class="form-label-modal">Nom d'utilisateur</label>
+                        <input class="form-input" type="text" name="username"
+                            value="{{ request.user.username }}" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label-modal">Nouveau mot de passe</label>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input class="form-input" type="password" name="new_password"
+                                id="new_password" placeholder="Laisser vide pour ne pas changer"
+                                style="width:100%; padding-right:2.5rem; box-sizing:border-box;">
+                            <button type="button" onclick="togglePassword('new_password', this)"
+                                    style="position:absolute; right:0.75rem; background:none; border:none; cursor:pointer; color:#888; padding:0;">
+                                <i class="ri-eye-line"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label-modal">Confirmer le mot de passe</label>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input class="form-input" type="password" name="confirm_password"
+                                id="confirm_password" placeholder="Confirmer le nouveau mot de passe"
+                                style="width:100%; padding-right:2.5rem; box-sizing:border-box;">
+                            <button type="button" onclick="togglePassword('confirm_password', this)"
+                                    style="position:absolute; right:0.75rem; background:none; border:none; cursor:pointer; color:#888; padding:0;">
+                                <i class="ri-eye-line"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalProfil()">Annuler</button>
+                    <button type="submit" class="btn-modal btn-modal-submit">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if profil_errors %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() { openModalProfil(); });
+    </script>
+    {% endif %}
+
+    <script src="/static/js/dash.js"></script>
+
+</body>
+</html>

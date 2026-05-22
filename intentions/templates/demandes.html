@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" style="animation: fadeInUp 0.6s ease;">
+
+   <!-- Header + Navigation sur une seule ligne -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+
+        <!-- Titre + Navigation mois -->
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            
+            <a href="?mois={{ mois_precedent|date:'Y-m' }}"
+            style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+                    border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #555;
+                    text-decoration: none;" title="Mois précédent">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+
+            <span style="font-size: 0.95rem; font-weight: 600; color: #2e2e2e; min-width: 110px; text-align: center; text-transform: capitalize;">
+                {{ mois_actif|date:"F Y" }}
+            </span>
+
+            <a href="?mois={{ mois_suivant|date:'Y-m' }}"
+            style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+                    border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #555;
+                    text-decoration: none;" title="Mois suivant">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+
+            {% now "Y-m" as current_month %}
+            {% if mois_param != current_month %}
+                <a href="?" style="font-size: 0.82rem; color: #1e88e5; text-decoration: none;
+                    border: 1px solid #1e88e5; border-radius: 6px; padding: 0.3rem 0.75rem;">
+                    Aujourd'hui
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Boutons actions -->
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+
+            <a href="{% url 'export_intentions_pdf' %}?mois={{ mois_param }}"
+            style="display: inline-flex; align-items: center; justify-content: center;
+                    width: 42px; height: 42px; border-radius: 8px;
+                    background-color: #fff; color: #c62828;
+                    border: 1.5px solid #c62828; text-decoration: none;
+                    transition: background 0.15s, color 0.15s; flex-shrink: 0;"
+            onmouseover="this.style.background='#c62828'; this.style.color='#fff';"
+            onmouseout="this.style.background='#fff'; this.style.color='#c62828';"
+            title="Télécharger le PDF du mois">
+                <i class="ri-file-pdf-2-line" style="font-size: 1.1rem;"></i>
+            </a>
+
+            <a href="{% url 'export_intentions_pdf_jour' %}?date={{ today|date:'Y-m-d' }}"
+            style="display: inline-flex; align-items: center; justify-content: center;
+                    width: 42px; height: 42px; border-radius: 8px;
+                    background-color: #fff; color: #3a547d;
+                    border: 1.5px solid #3a547d; text-decoration: none;
+                    transition: background 0.15s, color 0.15s; flex-shrink: 0;"
+            onmouseover="this.style.background='#3a547d'; this.style.color='#fff';"
+            onmouseout="this.style.background='#fff'; this.style.color='#3a547d';"
+            title="Télécharger les intentions d'aujourd'hui">
+                <i class="ri-calendar-check-line" style="font-size: 1.1rem;"></i>
+            </a>
+
+            <a href="{% url 'export_intentions_pdf_demain' %}"
+            style="display: inline-flex; align-items: center; justify-content: center;
+                    width: 42px; height: 42px; border-radius: 8px;
+                    background-color: #fff; color: #fb8c00;
+                    border: 1.5px solid #fb8c00; text-decoration: none;
+                    transition: background 0.15s, color 0.15s; flex-shrink: 0;"
+            onmouseover="this.style.background='#fb8c00'; this.style.color='#fff';"
+            onmouseout="this.style.background='#fff'; this.style.color='#fb8c00';"
+            title="Télécharger les intentions de demain">
+                <i class="ri-calendar-todo-line" style="font-size: 1.1rem;"></i>
+            </a>
+
+            <button class="card-action" onclick="openModalDemande()"
+            style="display: inline-flex; align-items: center; justify-content: center;
+                    width: 42px; height: 42px; border-radius: 8px;
+                    background-color: #59c85a; color: white;
+                    border: none; cursor: pointer; flex-shrink: 0;">
+                <i class="ri-add-line" style="font-size: 1.1rem;"></i>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- ===== TABLEAU ===== -->
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Type</th>
+                        <th>Intention</th>
+                        <th>Jour</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in intentions %}
+                    <tr>
+                        <td>{{ i.demandeur.nom }}</td>
+                        <td>{{ i.categorie|default:"-" }}</td>
+                        <td>{{ i.intention }}</td>
+                        <td>{{ i.horaire.get_jour_display }} {{ i.horaire.heure }}</td>
+                        <td>{{ i.date_debut }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                {% now "Y-m-d" as today %}
+                                {% if i.date_debut|date:"Y-m-d" >= today %}
+                                    <button class="action-btn btn-edit"
+                                        onclick="openModalEditIntention(
+                                            '{{ i.id }}',
+                                            '{{ i.demandeur.nom|escapejs }}',
+                                            '{{ i.intention|escapejs }}',
+                                            '{{ i.categorie|escapejs }}',
+                                            '{{ i.horaire.id }}',
+                                            '{{ i.date_debut|date:"Y-m-d" }}',
+                                            '{{ i.demandeur.telephone|escapejs }}'
+                                        )">
+                                        <i class="ri-edit-line"></i>
+                                    </button>
+                                    <button class="action-btn btn-delete"
+                                        onclick="openModalDeleteIntention('{{ i.id }}')">
+                                        <i class="ri-delete-bin-6-line"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="action-btn btn-edit" disabled style="opacity: 0.4; cursor: not-allowed;">
+                                        <i class="ri-edit-line"></i>
+                                    </button>
+                                    <button class="action-btn btn-delete" disabled style="opacity: 0.4; cursor: not-allowed;">
+                                        <i class="ri-delete-bin-6-line"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #aaa; padding: 2rem 0;">
+                            <i class="ri-inbox-line" style="font-size: 1.5rem; display: block; margin-bottom: 0.4rem;"></i>
+                            Aucune demande pour {{ mois_actif|date:"F Y" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.4rem; margin-top: 1.5rem; flex-wrap: wrap;">
+
+        {% if page_obj.has_previous %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.previous_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span style="padding: 0.45rem 0.9rem; border-radius: 8px; background: #59c85a;
+                             color: #fff; font-size: 0.88rem; font-weight: 600;">
+                    {{ num }}
+                </span>
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a href="?mois={{ mois_param }}&page={{ num }}"
+                   style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                          background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.next_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+        {% endif %}
+
+    </div>
+    <p style="text-align: center; font-size: 0.8rem; color: #bbb; margin-top: 0.5rem;">
+        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+    </p>
+    {% endif %}
+
+</div>
+
+
+<!-- ======================== MODAL AJOUT ======================== -->
+<div class="modal-overlay" id="modalDemande" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Demande de messe</h3>
+            <button class="modal-close" onclick="closeModalDemande()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'ajouter_intention' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-field">
+                    <label class="form-label-modal">Jour & Heure</label>
+                    <select name="horaire_id" class="form-input" required>
+                        <option value="">— Choisir un horaire —</option>
+                        {% for messe in messes %}
+                            <option value="{{ messe.id }}">
+                                {{ messe.get_jour_display }} — {{ messe.heure|time:"H\hi" }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Nom du demandeur</label>
+                    <input type="text" name="nom" class="form-input" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Téléphone</label>
+                    <input type="text" name="telephone" class="form-input">
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Catégorie</label>
+                    <select name="categorie" class="form-input" required>
+                        <option value="">— Choisir —</option>
+                        <option value="Action de grâce">Action de grâce</option>
+                        <option value="Défunts">Défunts</option>
+                        <option value="Autres">Autres</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Intention</label>
+                    <textarea name="intention" class="form-input" required></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Date</label>
+                    <input type="date" name="date_debut" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModalDemande()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL MODIFICATION ======================== -->
+<div class="modal-overlay" id="modalEditIntention" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Modifier la demande</h3>
+            <button class="modal-close" onclick="closeModalEditIntention()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <form method="post" id="editIntentionForm" action="">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-field">
+                    <label class="form-label-modal">Jour & Heure</label>
+                    <select name="horaire_id" id="editInfoMesse" class="form-input" required>
+                        <option value="">— Choisir un horaire —</option>
+                        {% for messe in messes %}
+                            <option value="{{ messe.id }}">
+                                {{ messe.get_jour_display }} — {{ messe.heure|time:"H\hi" }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Nom du demandeur</label>
+                    <input type="text" name="nom" id="editDemandeur" class="form-input" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Téléphone</label>
+                    <input type="text" name="telephone" id="editTelephone" class="form-input">
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Catégorie</label>
+                    <select name="categorie" id="editCategorie" class="form-input" required>
+                        <option value="">— Choisir —</option>
+                        <option value="Action de grâce">Action de grâce</option>
+                        <option value="Défunts">Défunts</option>
+                        <option value="Autres">Autres</option>
+                    </select>
+                </div>
+                <div class="form-field form-field-full">
+                    <label class="form-label-modal">Intention</label>
+                    <textarea name="intention" id="editIntention" class="form-input" required></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Date</label>
+                    <input type="date" name="date_debut" id="editDate" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModalEditIntention()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL SUPPRESSION ======================== -->
+<div class="modal-overlay" id="modalDeleteIntention" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button class="modal-close" onclick="closeModalDeleteIntention()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="text-align: center; margin: 1rem 0;">
+                Êtes-vous sûr de vouloir supprimer cette demande de messe ?<br>
+                <span style="color: red; font-size: 0.9rem;">Cette action est irréversible.</span>
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteIntention()">Annuler</button>
+            <a id="deleteIntentionLink" href="#" class="btn-modal btn-modal-submit"
+               style="background-color: #e53935; text-decoration: none; text-align: center;">
+                Supprimer
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

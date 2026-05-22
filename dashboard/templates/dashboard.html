@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" id="dashboard-content" style="animation: fadeInUp 0.6s ease;">
+
+    <!-- ===== CARTES STATISTIQUES ===== -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+
+        <!-- Carte : Total horaires -->
+        <!-- <div class="stat-card" style="background: #fff; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #e8f5e9; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-calendar-check-line" style="font-size: 1.5rem; color: #43a047;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Horaires de messe</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_messes }}</p>
+            </div>
+        </div> -->
+
+        <!-- Carte : Demandes totales -->
+        <div class="stat-card" style="background: #e3f2fd; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-file-list-3-line" style="font-size: 1.5rem; color: #1e88e5;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes totales</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_intentions }}</p>
+            </div>
+        </div>
+
+        <!-- Carte : Demandes ce mois -->
+        <div class="stat-card" style="background: #fff3e0; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-calendar-2-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Ce mois-ci</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ intentions_ce_mois }}</p>
+            </div>
+        </div>
+
+        <!-- Carte : Montant ce mois -->
+        <div class="stat-card" style="background: #f3e5f5; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: #9c27b0;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Montant de ce mois (FCFA)</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_ce_mois|floatformat:0 }}</p>
+            </div>
+        </div>
+
+        <!-- Carte : Montant total -->
+        <div class="stat-card" style="background: #fce4ec; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #e91e63;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Montant total (FCFA)</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_total|floatformat:0 }}</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== DERNIÈRES DEMANDES ===== -->
+    <div class="card" style="border-radius: 12px; padding: 1.5rem; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 1.25rem; color: #2e2e2e;">
+            <i class="ri-time-line" style="color: #fb8c00; margin-right: 0.4rem;"></i>
+            Dernières demandes
+        </h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Catégorie</th>
+                        <th>Intention</th>
+                        <th>Horaire</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in dernieres_intentions %}
+                    <tr>
+                        <td>{{ i.demandeur.nom }}</td>
+                        <td>{{ i.categorie|default:"—" }}</td>
+                        <td>{{ i.intention|truncatechars:40 }}</td>
+                        <td>{{ i.horaire.get_jour_display }} {{ i.horaire.heure }}</td>
+                        <td>{{ i.date_debut }}</td>
+                        <td>{{ i.montant|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #aaa;">Aucune demande enregistrée</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+{% endblock %}

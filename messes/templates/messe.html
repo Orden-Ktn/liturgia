@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" style="animation: fadeInUp 0.6s ease;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem;">Messes</h2>
+        </div>
+
+        <button class="card-action" style="padding: 0.75rem 1.5rem; background-color: #59c85a; color: white;" onclick="openModalAddMesse()">
+            Ajouter
+        </button>
+    </div>
+
+    <!-- Tableau -->
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jour</th>
+                        <th>Heure</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% for m in messes %}
+                    <tr>
+                        <td>
+                            {{ m.get_jour_display }}
+
+                            {% if m.type == "special" and m.fete %}
+                                (<span style="color: green;">{{ m.fete }}</span>)
+                            {% endif %}
+                        </td>
+                        <td>{{ m.heure }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn btn-edit"
+                                    onclick="openModalEditMesse('{{ m.id }}', '{{ m.jour }}', '{{ m.heure|time:"H:i" }}', '{{ m.type }}', '{{ m.fete|default:'' }}')">
+                                    <i class="ri-edit-line"></i>
+                                </button>
+
+                                <button class="action-btn btn-delete"
+                                    onclick="openModalDeleteMesse('{{ m.id }}')">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: red;">
+                            Aucun horaire enregistré
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ======================== MODAL AJOUT ======================== -->
+<div class="modal-overlay" id="modalAddMesse" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Ajouter une messe</h3>
+            <button class="modal-close" onclick="closeModalAddMesse()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <form method="post" action="{% url 'ajouter_messe' %}">
+            {% csrf_token %}
+
+            <div class="modal-body">
+
+                <div class="form-field">
+                    <label class="form-label-modal">Jour</label>
+                    <select class="form-input" name="jour" required>
+                        <option value="">-- Choisir --</option>
+                        <option value="0">Lundi</option>
+                        <option value="1">Mardi</option>
+                        <option value="2">Mercredi</option>
+                        <option value="3">Jeudi</option>
+                        <option value="4">Vendredi</option>
+                        <option value="5">Samedi</option>
+                        <option value="6">Dimanche</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Heure</label>
+                    <input class="form-input" type="time" name="heure" required>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Type</label>
+                    <select class="form-input" name="type">
+                        <option value="normal">Normal</option>
+                        <option value="special">Jour spécial</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Fête (si jour spécial)</label>
+                    <select class="form-input" name="fete">
+                        <option value="">-- Aucun --</option>
+                        <option>Messe anticipée</option>
+                        <option>Noël</option>
+                        <option>1er Janvier</option>
+                        <option>Ascension</option>
+                        <option>Assomption</option>
+                        <option>Toussaint</option>
+                        <option>Lundi de Pâques</option>
+                        <option>Lundi de Pentecôte</option>
+                        <option>Jeudi Saint</option>
+                        <option>Vendredi Saint</option>
+                        <option>Samedi Saint</option>
+                        <option>Veillée Noël</option>
+                        <option>Veillée Nouvel An</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalAddMesse()">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit">Enregistrer</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL MODIFICATION ======================== -->
+<div class="modal-overlay" id="modalEditMesse" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Modifier une messe</h3>
+            <button class="modal-close" onclick="closeModalEditMesse()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <form method="post" id="formEditMesse" action="">
+            {% csrf_token %}
+
+            <div class="modal-body">
+
+                <div class="form-field">
+                    <label class="form-label-modal">Jour</label>
+                    <select class="form-input" name="jour" id="editJour" required>
+                        <option value="">-- Choisir --</option>
+                        <option value="0">Lundi</option>
+                        <option value="1">Mardi</option>
+                        <option value="2">Mercredi</option>
+                        <option value="3">Jeudi</option>
+                        <option value="4">Vendredi</option>
+                        <option value="5">Samedi</option>
+                        <option value="6">Dimanche</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Heure</label>
+                    <input class="form-input" type="time" name="heure" id="editHeure" required>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Type</label>
+                    <select class="form-input" name="type" id="editType">
+                        <option value="normal">Normal</option>
+                        <option value="special">Jour spécial</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Fête (si jour spécial)</label>
+                    <select class="form-input" name="fete" id="editFete">
+                        <option value="">-- Aucun --</option>
+                        <option>Messe anticipée</option>
+                        <option>Noël</option>
+                        <option>1er Janvier</option>
+                        <option>Ascension</option>
+                        <option>Assomption</option>
+                        <option>Toussaint</option>
+                        <option>Lundi de Pâques</option>
+                        <option>Lundi de Pentecôte</option>
+                        <option>Jeudi Saint</option>
+                        <option>Vendredi Saint</option>
+                        <option>Samedi Saint</option>
+                        <option>Veillée Noël</option>
+                        <option>Veillée Nouvel An</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalEditMesse()">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit">Mettre à jour</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL SUPPRESSION ======================== -->
+<div class="modal-overlay" id="modalDeleteMesse" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button class="modal-close" onclick="closeModalDeleteMesse()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <p style="text-align: center; margin: 1rem 0;">
+                Êtes-vous sûr de vouloir supprimer cet horaire de messe ?<br>
+                <span style="color: red; font-size: 0.9rem;">Cette action est irréversible.</span>
+            </p>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteMesse()">Annuler</button>
+            <a id="deleteMesseLink" href="#" class="btn-modal btn-modal-submit" style="background-color: #e53935; text-decoration: none; text-align: center;">
+                Supprimer
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
