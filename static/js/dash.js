@@ -187,11 +187,12 @@ function closeModalAddUser() {
 }
 
 /* ---- SUPPRESSION ---- */
-function openModalDeleteUser(id, username) {
+function openModalDeleteUser(url, username) {
     document.getElementById("deleteUserName").textContent = username;
-    document.getElementById("deleteUserLink").href = "{% url 'delete_users' 0 %}".replace("0", id);
+    document.getElementById("deleteUserLink").href = url;
     document.getElementById("modalDeleteUser").style.display = "flex";
 }
+
 function closeModalDeleteUser() {
     document.getElementById("modalDeleteUser").style.display = "none";
 }

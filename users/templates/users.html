@@ -33,7 +33,9 @@
                         <td>
                             <div class="action-buttons">
                                 <button class="action-btn btn-delete"
-                                    onclick="openModalDeleteUser('{{ u.id }}', '{{ u.username|escapejs }}')">
+                                    data-url="{% url 'delete_users' u.id %}"
+                                    data-username="{{ u.username|escapejs }}"
+                                    onclick="openModalDeleteUser(this.dataset.url, this.dataset.username)">
                                     <i class="ri-delete-bin-line"></i>
                                 </button>
                             </div>
@@ -136,9 +138,11 @@
         </div>
 
         <div class="modal-footer">
-            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteUser()">Annuler</button>
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteUser()">
+                Annuler
+            </button>
             <a id="deleteUserLink" href="#" class="btn-modal btn-modal-submit"
-               style="background-color: #e53935; text-decoration: none; text-align: center;">
+            style="background-color: #e53935; text-decoration: none; text-align: center;">
                 Supprimer
             </a>
         </div>

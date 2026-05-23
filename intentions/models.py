@@ -27,25 +27,41 @@ class Intention(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def calculer_montant(self):
-        """Calcule le montant basé sur la date de début"""
-        # Vérifier si date_debut est une chaîne ou un objet date
-        if self.date_debut:
-            # Si c'est une chaîne, la convertir en objet date
-            if isinstance(self.date_debut, str):
-                try:
-                    date_obj = datetime.strptime(self.date_debut, '%Y-%m-%d').date()
-                except ValueError:
-                    return self.nombre * 2000  # Valeur par défaut en cas d'erreur
-            else:
-                date_obj = self.date_debut
-            
-            mois = date_obj.month
-            # Novembre (11) ou Décembre (12)
-            if mois == 11 or mois == 12:
-                return self.nombre * 500
-        
-        return self.nombre * 2000
-    
+        if not self.date_debut:
+            return self.nombre * 2000
+
+        # Convertir en objet date si nécessaire
+        if isinstance(self.date_debut, str):
+            try:
+                date_obj = datetime.strptime(self.date_debut, '%Y-%m-%d').date()
+            except ValueError:
+                return self.nombre * 2000
+        else:
+            date_obj = self.date_debut
+
+        mois = date_obj.month
+
+        # Novembre (11) ou Décembre (12) → tarif fixe 500
+        if mois in (11, 12):
+            return self.nombre * 500
+
+        # weekday() : 0=lundi, 5=samedi, 6=dimanche
+        jour = date_obj.weekday()
+
+        # Dimanche → 2000
+        if jour == 6:
+            return self.nombre * 2000
+
+        # Samedi soir 19h00 → 2000
+        if jour == 5 and self.horaire:
+            from datetime import time
+            if self.horaire.heure == time(19, 0):
+                return self.nombre * 2000
+
+        # Jours de semaine (lundi–samedi hors 19h00) → 1200
+        return self.nombre * 1200
+
+
     def save(self, *args, **kwargs):
         # Surcharge de save pour calculer automatiquement le montant
         self.montant = self.calculer_montant()

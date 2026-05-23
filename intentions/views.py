@@ -149,14 +149,18 @@ def modifier_intention(request, id):
         intention.intention = request.POST.get('intention')
         intention.nombre = 1
         intention.categorie = request.POST.get('categorie')
-        intention.date_debut_str = request.POST.get('date_debut')
-        intention.date_fin_str = request.POST.get('date_fin')
+        date_debut_str = request.POST.get('date_debut')
+        date_fin_str = request.POST.get('date_fin')
+
+        if not date_debut_str:
+            messages.error(request, "La date est obligatoire")
+            return redirect('intentions')
 
         try:
-            if intention.date_debut_str:
-                intention.date_debut = datetime.strptime(intention.date_debut_str, '%Y-%m-%d').date()
-            if intention.date_fin_str:
-                intention.date_fin = datetime.strptime(intention.date_fin_str, '%Y-%m-%d').date()
+            if date_debut_str:
+                intention.date_debut = datetime.strptime(date_debut_str, '%Y-%m-%d').date()
+            if date_fin_str:
+                intention.date_fin = datetime.strptime(date_fin_str, '%Y-%m-%d').date()
         except ValueError:
             messages.error(request, "Format de date invalide")
             return redirect('intentions')
