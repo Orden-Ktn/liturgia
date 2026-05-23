@@ -79,7 +79,6 @@
                         <th>Intention</th>
                         <th>Horaire</th>
                         <th>Date</th>
-                        <th>Montant</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,7 +89,6 @@
                         <td>{{ i.intention|truncatechars:40 }}</td>
                         <td>{{ i.horaire.get_jour_display }} {{ i.horaire.heure }}</td>
                         <td>{{ i.date_debut }}</td>
-                        <td>{{ i.montant|default:"—" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
