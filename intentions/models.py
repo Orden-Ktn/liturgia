@@ -1,6 +1,7 @@
 from datetime import datetime
-
 from django.db import models
+from liturgia import settings
+
 
 class Demandeur(models.Model):
     nom = models.CharField(max_length=255)
@@ -8,6 +9,7 @@ class Demandeur(models.Model):
 
     def __str__(self):
         return self.nom
+
 
 
 class Intention(models.Model):
@@ -23,6 +25,14 @@ class Intention(models.Model):
     horaire = models.ForeignKey('messes.HoraireMesse', on_delete=models.SET_NULL, null=True)
 
     montant = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    statut = models.CharField(max_length=20)
+
+    enregistre_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='intentions_enregistrees'
+    )
+    role_enregistreur = models.CharField(max_length=100, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -58,8 +68,8 @@ class Intention(models.Model):
             if self.horaire.heure == time(19, 0):
                 return self.nombre * 2000
 
-        # Jours de semaine (lundi–samedi hors 19h00) → 1200
-        return self.nombre * 1200
+        # Jours de semaine (lundi–samedi hors 19h00) → 2000
+        return self.nombre * 2000
 
 
     def save(self, *args, **kwargs):
@@ -69,3 +79,78 @@ class Intention(models.Model):
     
     def __str__(self):
         return f"{self.demandeur.nom} - {self.date_debut}"
+    
+
+
+class MesseSpeciale(models.Model):
+    CATEGORIES = [
+        ('Action de grâce', 'Action de grâce'),
+        ('Obsèques', 'Obsèques'),
+        ('Mariage', 'Mariage'),
+        ('Diplôme', 'Diplôme'),
+        ('Baptême bébé', 'Baptême bébé'),
+    ]
+
+    demandeur = models.ForeignKey(Demandeur, on_delete=models.CASCADE)
+    categorie = models.CharField(max_length=100, choices=CATEGORIES, blank=True, null=True)
+    date_evenement = models.DateField()
+    montant = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    enregistre_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='messes_enregistrees'
+    )
+    role_enregistreur = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def calculer_montant(self):
+        if self.categorie in ['Action de grâce', 'Obsèques', 'Mariage', 'Diplôme']:
+            return 10000
+        elif self.categorie == 'Baptême bébé':
+            return 5500
+        return 0
+
+    def save(self, *args, **kwargs):
+        self.montant = self.calculer_montant()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.demandeur.nom} - {self.date_evenement}"
+    
+    
+
+class AutreFrais(models.Model):
+    CATEGORIES = [
+        ('Denier de culte', 'Denier de culte'),
+        ('Dîme', 'Dîme'),
+        ('Don', 'Don'),
+        ('Caméra', 'Caméra'),
+        ('Photo', 'Photo'),
+    ]
+
+    demandeur = models.ForeignKey(Demandeur, on_delete=models.CASCADE)
+    categorie = models.CharField(max_length=100, choices=CATEGORIES, blank=True, null=True)
+    date_evenement = models.DateField(blank=True, null=True)
+    montant = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    enregistre_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='autres_frais_enregistres'
+    )
+    role_enregistreur = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    CATEGORIES_MONTANT_FIXE = ['Caméra', 'Photo']
+    CATEGORIES_MONTANT_LIBRE = ['Denier de culte', 'Dîme', 'Don']
+
+    def save(self, *args, **kwargs):
+        # Caméra/Photo : montant fixe automatique, pas de date obligatoire
+        if self.categorie in self.CATEGORIES_MONTANT_FIXE:
+            if not self.montant:
+                self.montant = 5000
+        # Dîme/Don/Denier : montant libre saisi, pas de date
+        # → on ne touche pas au montant
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.demandeur.nom} - {self.categorie}"
+
+        

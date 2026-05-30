@@ -81,18 +81,6 @@
                 </div>
 
                 <div class="form-field">
-                    <label class="form-label-modal">Rôle</label>
-                    <select class="form-input" name="role" required>
-                        <option value="">-- Choisir un rôle --</option>
-                        <option value="vicaire"    {% if form.role.value == "vicaire"    %}selected{% endif %}>Vicaire</option>
-                        <option value="secretaire" {% if form.role.value == "secretaire" %}selected{% endif %}>Secrétaire</option>
-                    </select>
-                    {% for error in form.role.errors %}
-                        <span style="color:red; font-size:0.85rem;">{{ error }}</span>
-                    {% endfor %}
-                </div>
-
-                <div class="form-field">
                     <label class="form-label-modal">Mot de passe</label>
                     <div style="position: relative; display: flex; align-items: center;">
                         <input class="form-input" type="password" name="password"
@@ -109,10 +97,23 @@
                     </div>
                 </div>
 
+                <div class="form-field">
+                    <label class="form-label-modal">Rôle</label>
+                    <select class="form-input" name="role" required>
+                        <option value="">-- Choisir un rôle --</option>
+                        <option value="vicaire"    {% if form.role.value == "vicaire"    %}selected{% endif %}>Vicaire</option>
+                        <option value="secretaire" {% if form.role.value == "secretaire" %}selected{% endif %}>Secrétaire</option>
+                        <option value="stagiaire" {% if form.role.value == "stagiaire" %}selected{% endif %}>Stagiaire</option>
+                    </select>
+                    {% for error in form.role.errors %}
+                        <span style="color:red; font-size:0.85rem;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalAddUser()">Annuler</button>
-                <button type="submit" class="btn-modal btn-modal-submit">Ajouter</button>
+                <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Ajouter</button>
             </div>
         </form>
 

@@ -40,48 +40,12 @@
         <!-- Boutons actions -->
         <div style="display: flex; gap: 0.75rem; align-items: center;">
 
-            <a href="{% url 'export_intentions_pdf' %}?mois={{ mois_param }}"
-            style="display: inline-flex; align-items: center; justify-content: center;
-                    width: 42px; height: 42px; border-radius: 8px;
-                    background-color: #fff; color: #c62828;
-                    border: 1.5px solid #c62828; text-decoration: none;
-                    transition: background 0.15s, color 0.15s; flex-shrink: 0;"
-            onmouseover="this.style.background='#c62828'; this.style.color='#fff';"
-            onmouseout="this.style.background='#fff'; this.style.color='#c62828';"
-            title="Télécharger le PDF du mois">
-                <i class="ri-file-pdf-2-line" style="font-size: 1.1rem;"></i>
-            </a>
-
-            <a href="{% url 'export_intentions_pdf_jour' %}?date={{ today|date:'Y-m-d' }}"
-            style="display: inline-flex; align-items: center; justify-content: center;
-                    width: 42px; height: 42px; border-radius: 8px;
-                    background-color: #fff; color: #3a547d;
-                    border: 1.5px solid #3a547d; text-decoration: none;
-                    transition: background 0.15s, color 0.15s; flex-shrink: 0;"
-            onmouseover="this.style.background='#3a547d'; this.style.color='#fff';"
-            onmouseout="this.style.background='#fff'; this.style.color='#3a547d';"
-            title="Télécharger les intentions d'aujourd'hui">
-                <i class="ri-calendar-check-line" style="font-size: 1.1rem;"></i>
-            </a>
-
-            <a href="{% url 'export_intentions_pdf_demain' %}"
-            style="display: inline-flex; align-items: center; justify-content: center;
-                    width: 42px; height: 42px; border-radius: 8px;
-                    background-color: #fff; color: #fb8c00;
-                    border: 1.5px solid #fb8c00; text-decoration: none;
-                    transition: background 0.15s, color 0.15s; flex-shrink: 0;"
-            onmouseover="this.style.background='#fb8c00'; this.style.color='#fff';"
-            onmouseout="this.style.background='#fff'; this.style.color='#fb8c00';"
-            title="Télécharger les intentions de demain">
-                <i class="ri-calendar-todo-line" style="font-size: 1.1rem;"></i>
-            </a>
-
-            <button class="card-action" onclick="openModalDemande()"
-            style="display: inline-flex; align-items: center; justify-content: center;
-                    width: 42px; height: 42px; border-radius: 8px;
-                    background-color: #59c85a; color: white;
-                    border: none; cursor: pointer; flex-shrink: 0;">
-                <i class="ri-add-line" style="font-size: 1.1rem;"></i>
+            <button class="card-action" onclick="openModalAutreMesse()"
+                style="display: inline-flex; align-items: center; justify-content: center;
+                        width: 42px; height: 42px; border-radius: 8px;
+                        background-color: #59c85a; color: white;
+                        border: none; cursor: pointer; flex-shrink: 0;">
+                    <i class="ri-add-line" style="font-size: 1.1rem;"></i>
             </button>
 
         </div>
@@ -94,39 +58,38 @@
                 <thead>
                     <tr>
                         <th>Enregistrée par</th>
-                        <th>Nom</th>
-                        <th>Intention</th>
-                        <th>Jour</th>
-                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Demandeur</th>
+                        <th>Date de l'évènement</th>
+                        <th>Montant</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for i in intentions %}
+                    {% for m in messes %}
                     <tr>
-                        <td>{{ i.role_enregistreur }}</td>
-                        <td>{{ i.demandeur.nom }}</td>
-                        <td><em style="font-weight: bold;">({{ i.categorie|default:"-" }})</em> {{ i.intention }}</td>
-                        <td>{{ i.horaire.get_jour_display }} {{ i.horaire.heure }}</td>
-                        <td>{{ i.date_debut }}</td>
+                        <td>{{ m.role_enregistreur }}</td>
+                        <td>{{ m.categorie|default:"-" }}</td>
+                        <td>{{ m.demandeur }}</td>
+                        <td>{{ m.date_evenement }}</td>
+                        <td>{{ m.montant|floatformat:0 }} FCFA</td>
                         <td>
                             <div class="action-buttons">
                                 {% now "Y-m-d" as today %}
-                                {% if i.date_debut|date:"Y-m-d" >= today %}
+                                {% if m.date_evenement|date:"Y-m-d" >= today %}
                                     <button class="action-btn btn-edit"
-                                        onclick="openModalEditIntention(
-                                            '{{ i.id }}',
-                                            '{{ i.demandeur.nom|escapejs }}',
-                                            '{{ i.intention|escapejs }}',
-                                            '{{ i.categorie|escapejs }}',
-                                            '{{ i.horaire.id }}',
-                                            '{{ i.date_debut|date:"Y-m-d" }}',
-                                            '{{ i.demandeur.telephone|escapejs }}'
+                                        onclick="openModalEditAutreMesse(
+                                            '{{ m.id }}',
+                                            '{{ m.demandeur.nom|escapejs }}',
+                                            '{{ m.categorie|escapejs }}',
+                                            '{{ m.horaire.id }}',
+                                            '{{ m.date_evenement|date:"Y-m-d" }}',
+                                            '{{ m.demandeur.telephone|escapejs }}'
                                         )">
                                         <i class="ri-edit-line"></i>
                                     </button>
                                     <button class="action-btn btn-delete"
-                                        onclick="openModalDeleteIntention('{{ i.id }}')">
+                                        onclick="openModalDeleteAutreMesse('{{ i.id }}')">
                                         <i class="ri-delete-bin-6-line"></i>
                                     </button>
                                 {% else %}
@@ -198,28 +161,17 @@
 
 
 <!-- ======================== MODAL AJOUT ======================== -->
-<div class="modal-overlay" id="modalDemande" style="display:none;">
+<div class="modal-overlay" id="modalAutreMesse" style="display:none;">
     <div class="modal">
         <div class="modal-header">
-            <h3>Demande de messe</h3>
-            <button class="modal-close" onclick="closeModalDemande()">
+            <h3>Demande d'autre messe</h3>
+            <button class="modal-close" onclick="closeModalAutreMesse()">
                 <i class="ri-close-line"></i>
             </button>
         </div>
-        <form method="post" action="{% url 'ajouter_intention' %}">
+        <form method="post" action="{% url 'ajouter_autre_messe' %}">
             {% csrf_token %}
             <div class="modal-body">
-                <div class="form-field">
-                    <label class="form-label-modal">Jour & Heure</label>
-                    <select name="horaire_id" class="form-input" required>
-                        <option value="">— Choisir un horaire —</option>
-                        {% for messe in messes %}
-                            <option value="{{ messe.id }}">
-                                {{ messe.get_jour_display }} — {{ messe.heure|time:"H\hi" }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
                 <div class="form-field">
                     <label class="form-label-modal">Nom du demandeur</label>
                     <input type="text" name="nom" class="form-input" required>
@@ -233,21 +185,21 @@
                     <select name="categorie" class="form-input" required>
                         <option value="">— Choisir —</option>
                         <option value="Action de grâce">Action de grâce</option>
-                        <option value="Défunts">Défunts</option>
-                        <option value="Autres">Autres</option>
+                        <option value="Obsèques">Obsèques</option>
+                        <option value="Mariage">Mariage</option>
+                        <option value="Diplôme">Diplôme</option>
+                        <option value="Baptême bébé">Baptême bébé</option>
                     </select>
                 </div>
+               
                 <div class="form-field">
-                    <label class="form-label-modal">Intention</label>
-                    <textarea name="intention" class="form-input" required></textarea>
+                    <label class="form-label-modal">Date de l'évènement</label>
+                    <input type="date" name="date_evenement" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
                 </div>
-                <div class="form-field">
-                    <label class="form-label-modal">Date</label>
-                    <input type="date" name="date_debut" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
-                </div>
+
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="closeModalDemande()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="button" onclick="closeModalAutreMesse()" class="btn-modal btn-modal-cancel">Annuler</button>
                 <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Enregistrer</button>
             </div>
         </form>
@@ -256,28 +208,17 @@
 
 
 <!-- ======================== MODAL MODIFICATION ======================== -->
-<div class="modal-overlay" id="modalEditIntention" style="display:none;">
+<div class="modal-overlay" id="modalEditAutreMesse" style="display:none;">
     <div class="modal">
         <div class="modal-header">
             <h3>Modifier la demande</h3>
-            <button class="modal-close" onclick="closeModalEditIntention()">
+            <button class="modal-close" onclick="closeModalEditAutreMesse()">
                 <i class="ri-close-line"></i>
             </button>
         </div>
-        <form method="post" id="editIntentionForm" action="">
+        <form method="post" id="editAutreMesseForm" action="">
             {% csrf_token %}
             <div class="modal-body">
-                <div class="form-field">
-                    <label class="form-label-modal">Jour & Heure</label>
-                    <select name="horaire_id" id="editInfoMesse" class="form-input" required>
-                        <option value="">— Choisir un horaire —</option>
-                        {% for messe in messes %}
-                            <option value="{{ messe.id }}">
-                                {{ messe.get_jour_display }} — {{ messe.heure|time:"H\hi" }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
                 <div class="form-field">
                     <label class="form-label-modal">Nom du demandeur</label>
                     <input type="text" name="nom" id="editDemandeur" class="form-input" required>
@@ -291,21 +232,20 @@
                     <select name="categorie" id="editCategorie" class="form-input" required>
                         <option value="">— Choisir —</option>
                         <option value="Action de grâce">Action de grâce</option>
-                        <option value="Défunts">Défunts</option>
-                        <option value="Autres">Autres</option>
+                        <option value="Obsèques">Obsèques</option>
+                        <option value="Mariage">Mariage</option>
+                        <option value="Diplôme">Diplôme</option>
+                        <option value="Baptême bébé">Baptême bébé</option>
                     </select>
                 </div>
-                <div class="form-field form-field-full">
-                    <label class="form-label-modal">Intention</label>
-                    <textarea name="intention" id="editIntention" class="form-input" required></textarea>
-                </div>
                 <div class="form-field">
-                    <label class="form-label-modal">Date</label>
-                    <input type="date" name="date_debut" id="editDate" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
+                    <label class="form-label-modal">Date de l'évènement</label>
+                    <input type="date" name="date_evenement" id="editDateEvenement" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
                 </div>
+
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="closeModalEditIntention()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="button" onclick="closeModalEditAutreMesse()" class="btn-modal btn-modal-cancel">Annuler</button>
                 <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Modifier</button>
             </div>
         </form>
@@ -314,11 +254,11 @@
 
 
 <!-- ======================== MODAL SUPPRESSION ======================== -->
-<div class="modal-overlay" id="modalDeleteIntention" style="display:none;">
+<div class="modal-overlay" id="modalDeleteAutreMesse" style="display:none;">
     <div class="modal">
         <div class="modal-header">
             <h3>Confirmer la suppression</h3>
-            <button class="modal-close" onclick="closeModalDeleteIntention()">
+            <button class="modal-close" onclick="closeModalDeleteAutreMesse()">
                 <i class="ri-close-line"></i>
             </button>
         </div>
@@ -329,8 +269,8 @@
             </p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteIntention()">Annuler</button>
-            <a id="deleteIntentionLink" href="#" class="btn-modal btn-modal-submit"
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteAutreMesse()">Annuler</button>
+            <a id="deleteAutreMesseLink" href="#" class="btn-modal btn-modal-submit"
                style="background-color: #e53935; text-decoration: none; text-align: center;">
                 Supprimer
             </a>

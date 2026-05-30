@@ -9,6 +9,7 @@ from django.conf import settings
 urlpatterns = [
 
     path('', views.dashboard, name='dashboard'),
+    path('finance/', views.finance, name='finance'),
     path('deconnexion/', views.deconnexion, name='deconnexion'),
     path('update_profil/', views.update_profil, name='update_profil'),
 

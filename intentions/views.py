@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
-from .models import Intention, Demandeur
+from .models import AutreFrais, Intention, Demandeur, MesseSpeciale
 from messes.models import HoraireMesse
 from django.core.paginator import Paginator
 from datetime import date, datetime, timedelta
@@ -18,11 +18,289 @@ from reportlab.platypus import (
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus import Image
-
 import os
-from datetime import date, timedelta
-from collections import defaultdict
 from django.conf import settings
+from django.utils import timezone
+
+
+# LISTE
+@login_required
+def autres_messes(request):
+    mois_param = request.GET.get('mois', timezone.now().strftime('%Y-%m'))
+
+    try:
+        mois_actif = datetime.strptime(mois_param, '%Y-%m').date().replace(day=1)
+    except ValueError:
+        mois_actif = timezone.now().date().replace(day=1)
+
+    mois_precedent = (mois_actif - timedelta(days=1)).replace(day=1)
+    mois_suivant = (mois_actif + timedelta(days=32)).replace(day=1)
+
+    qs = MesseSpeciale.objects.filter(
+        date_evenement__year=mois_actif.year,
+        date_evenement__month=mois_actif.month
+    ).select_related('demandeur').order_by('date_evenement')
+
+    paginator = Paginator(qs, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'autres_messes.html', {
+        'messes': page_obj,
+        'page_obj': page_obj,
+        'mois_actif': mois_actif,
+        'mois_precedent': mois_precedent,
+        'mois_suivant': mois_suivant,
+        'mois_param': mois_param,
+        'today': timezone.now().date(),
+    })
+
+
+# AJOUT
+@login_required
+def ajouter_autre_messe(request):
+    if request.method == "POST":
+        nom = request.POST.get('nom', '').strip()
+        telephone = request.POST.get('telephone', '').strip()
+        categorie = request.POST.get('categorie', '').strip()
+        date_evenement_str = request.POST.get('date_evenement', '').strip()
+
+        if not nom or not date_evenement_str or not categorie:
+            messages.error(request, "Champs obligatoires manquants")
+            return redirect('autres_messes')
+
+        try:
+            date_evenement = datetime.strptime(date_evenement_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "Format de date invalide")
+            return redirect('autres_messes')
+
+        demandeur = Demandeur.objects.create(nom=nom, telephone=telephone)
+
+        # Récupérer le rôle de l'utilisateur connecté
+        user = request.user
+        role = getattr(user, 'role', None) or (
+            'admin' if user.is_superuser else
+            'staff' if user.is_staff else
+            'user'
+        )
+
+        MesseSpeciale.objects.create(
+            demandeur=demandeur,
+            categorie=categorie,
+            date_evenement=date_evenement,
+            enregistre_par=user,
+            role_enregistreur=role,
+        )
+
+        messages.success(request, "Demande enregistrée avec succès")
+        return redirect('autres_messes')
+
+    return redirect('autres_messes')
+
+
+# MODIFIER
+@login_required
+def modifier_autre_messe(request, id):
+    messe = get_object_or_404(MesseSpeciale, id=id)
+
+    if request.method == "POST":
+        nom = request.POST.get('nom', '').strip()
+        telephone = request.POST.get('telephone', '').strip()
+        categorie = request.POST.get('categorie', '').strip()
+        date_evenement_str = request.POST.get('date_evenement', '').strip()
+
+        if not date_evenement_str or not categorie:
+            messages.error(request, "Champs obligatoires manquants")
+            return redirect('autres_messes')
+
+        try:
+            messe.date_evenement = datetime.strptime(date_evenement_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "Format de date invalide")
+            return redirect('autres_messes')
+
+        messe.categorie = categorie
+        messe.demandeur.nom = nom
+        messe.demandeur.telephone = telephone
+        messe.demandeur.save()
+        messe.save()  # recalcule le montant automatiquement
+
+        messages.success(request, "Demande modifiée avec succès")
+        return redirect('autres_messes')
+
+    return redirect('autres_messes')
+
+
+# SUPPRIMER
+@login_required
+def supprimer_autre_messe(request, id):
+    messe = get_object_or_404(MesseSpeciale, id=id)
+    messe.delete()
+    messages.success(request, "Demande supprimée")
+    return redirect('autres_messes')
+
+
+
+
+# LISTE
+@login_required
+def autres_frais(request):
+    mois_param = request.GET.get('mois', timezone.now().strftime('%Y-%m'))
+
+    try:
+        mois_actif = datetime.strptime(mois_param, '%Y-%m').date().replace(day=1)
+    except ValueError:
+        mois_actif = timezone.now().date().replace(day=1)
+
+    mois_precedent = (mois_actif - timedelta(days=1)).replace(day=1)
+    mois_suivant = (mois_actif + timedelta(days=32)).replace(day=1)
+
+    qs = AutreFrais.objects.filter(
+        created_at__year=mois_actif.year,
+        created_at__month=mois_actif.month
+    ).select_related('demandeur').order_by('-created_at')
+
+    paginator = Paginator(qs, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'autres_frais.html', {
+        'frais': page_obj,       # ← renommé 'frais' pour clarté
+        'page_obj': page_obj,
+        'mois_actif': mois_actif,
+        'mois_precedent': mois_precedent,
+        'mois_suivant': mois_suivant,
+        'mois_param': mois_param,
+        'today': timezone.now().date(),
+    })
+
+
+# AJOUT
+@login_required
+def ajouter_autre_frais(request):
+    if request.method == "POST":
+        nom = request.POST.get('nom', '').strip()
+        telephone = request.POST.get('telephone', '').strip()
+        categorie = request.POST.get('categorie', '').strip()
+        montant_str = request.POST.get('montant', '').strip()
+        date_evenement_str = request.POST.get('date_evenement', '').strip()
+
+        if not nom or not categorie:
+            messages.error(request, "Champs obligatoires manquants")
+            return redirect('autres_frais')
+
+        CATEGORIES_AVEC_DATE = ['Caméra', 'Photo']
+        CATEGORIES_AVEC_MONTANT = ['Denier de culte', 'Dîme', 'Don']
+
+        date_evenement = None
+        montant = None
+
+        if categorie in CATEGORIES_AVEC_DATE:
+            if not date_evenement_str:
+                messages.error(request, "La date est obligatoire pour cette catégorie")
+                return redirect('autres_frais')
+            try:
+                date_evenement = datetime.strptime(date_evenement_str, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, "Format de date invalide")
+                return redirect('autres_frais')
+
+        if categorie in CATEGORIES_AVEC_MONTANT:
+            if not montant_str:
+                messages.error(request, "Le montant est obligatoire pour cette catégorie")
+                return redirect('autres_frais')
+            try:
+                montant = float(montant_str)
+            except ValueError:
+                messages.error(request, "Montant invalide")
+                return redirect('autres_frais')
+
+        user = request.user
+        role = getattr(user, 'role', None) or (
+            'admin' if user.is_superuser else
+            'staff' if user.is_staff else
+            'user'
+        )
+
+        demandeur = Demandeur.objects.create(nom=nom, telephone=telephone)
+
+        frais = AutreFrais(
+            demandeur=demandeur,
+            categorie=categorie,
+            date_evenement=date_evenement,
+            montant=montant,
+            enregistre_par=user,
+            role_enregistreur=role,
+        )
+        frais.save()
+
+        messages.success(request, "Enregistré avec succès")
+        return redirect('autres_frais')
+
+    return redirect('autres_frais')
+
+
+# MODIFIER
+@login_required
+def modifier_autre_frais(request, id):
+    frais = get_object_or_404(AutreFrais, id=id)
+
+    if request.method == "POST":
+        nom = request.POST.get('nom', '').strip()
+        telephone = request.POST.get('telephone', '').strip()
+        categorie = request.POST.get('categorie', '').strip()
+        montant_str = request.POST.get('montant', '').strip()
+        date_evenement_str = request.POST.get('date_evenement', '').strip()
+
+        if not categorie:
+            messages.error(request, "La catégorie est obligatoire")
+            return redirect('autres_frais')
+
+        CATEGORIES_AVEC_DATE = ['Caméra', 'Photo']
+        CATEGORIES_AVEC_MONTANT = ['Denier de culte', 'Dîme', 'Don']
+
+        frais.date_evenement = None
+        frais.montant = None
+
+        if categorie in CATEGORIES_AVEC_DATE:
+            if not date_evenement_str:
+                messages.error(request, "La date est obligatoire pour cette catégorie")
+                return redirect('autres_frais')
+            try:
+                frais.date_evenement = datetime.strptime(date_evenement_str, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, "Format de date invalide")
+                return redirect('autres_frais')
+
+        if categorie in CATEGORIES_AVEC_MONTANT:
+            if not montant_str:
+                messages.error(request, "Le montant est obligatoire pour cette catégorie")
+                return redirect('autres_frais')
+            try:
+                frais.montant = float(montant_str)
+            except ValueError:
+                messages.error(request, "Montant invalide")
+                return redirect('autres_frais')
+
+        frais.categorie = categorie
+        frais.demandeur.nom = nom
+        frais.demandeur.telephone = telephone
+        frais.demandeur.save()
+        frais.save()
+
+        messages.success(request, "Modifié avec succès")
+        return redirect('autres_frais')
+
+    return redirect('autres_frais')
+
+
+# SUPPRIMER
+@login_required
+def supprimer_autre_frais(request, id):
+    frais = get_object_or_404(AutreFrais, id=id)
+    frais.delete()
+    messages.success(request, "Supprimé avec succès")
+    return redirect('autres_frais')
+
 
 
 
@@ -49,7 +327,7 @@ def intentions(request):
     qs = (
         Intention.objects
         .select_related('demandeur', 'horaire')
-        .filter(date_debut__year=annee, date_debut__month=mois)
+        .filter(statut='validee', date_debut__year=annee, date_debut__month=mois)
         .order_by('date_debut', 'horaire__heure')
     )
 
@@ -80,6 +358,7 @@ def intentions(request):
         'mois_suivant':   mois_suivant,
         'mois_param':     mois_actif.strftime('%Y-%m'),
     })
+
 
 # AJOUT
 @login_required
@@ -118,6 +397,14 @@ def ajouter_intention(request):
 
         horaire = get_object_or_404(HoraireMesse, id=horaire_id)
 
+        # Récupérer le rôle de l'utilisateur connecté
+        user = request.user
+        role = getattr(user, 'role', None) or (
+            'admin' if user.is_superuser else
+            'staff' if user.is_staff else
+            'user'
+        )
+
         # une intention = une messe
         nombre = 1
 
@@ -130,7 +417,8 @@ def ajouter_intention(request):
             date_debut=date_debut,
             date_fin=date_fin if date_fin else None,
             horaire=horaire,
-            # montant est omis - sera calculé automatiquement
+            role_enregistreur=role,
+            statut='validee',
         )
         intention.save()  # Le montant est calculé ici
 
@@ -185,7 +473,6 @@ def modifier_intention(request, id):
     return redirect('intentions')
 
 
-
 # SUPPRIMER
 @login_required
 def supprimer_intention(request, id):
@@ -196,7 +483,49 @@ def supprimer_intention(request, id):
     return redirect('intentions')
 
 
+@login_required
+def liste_demandes_faites(request):
+    demandes = Intention.objects.filter(statut='en_attente').select_related('demandeur', 'horaire').order_by('-created_at')
+    return render(request, 'demandes_a_valider.html', {'demandes': demandes})
 
+
+@login_required
+def valider_intention(request, id):
+    intention = get_object_or_404(Intention, id=id)
+    user = request.user
+    role = getattr(user, 'role', None) or (
+        'admin' if user.is_superuser else
+        'staff' if user.is_staff else
+        'user'
+    )
+    statut = 'validee'
+    intention.statut = statut
+    intention.enregistre_par = user
+    intention.role_enregistreur = role
+    intention.save()
+    messages.success(request, "Demande de messe validée.")
+    return redirect(request.META.get('HTTP_REFERER', 'intentions'))
+
+
+@login_required
+def rejeter_intention(request, id):
+    intention = get_object_or_404(Intention, id=id)
+    user = request.user
+    role = getattr(user, 'role', None) or (
+        'admin' if user.is_superuser else
+        'staff' if user.is_staff else
+        'user'
+    )
+    
+    intention.montant = 0
+    intention.statut = 'rejetee'
+    intention.enregistre_par = user
+    intention.role_enregistreur = role
+    
+    intention.save(update_fields=['montant', 'statut', 'role_enregistreur', 'enregistre_par'])
+    
+    messages.success(request, "Demande de messe rejetée.")
+    return redirect(request.META.get('HTTP_REFERER', 'intentions'))
 
 
 #  Couleurs

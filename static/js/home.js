@@ -1,22 +1,24 @@
-// Add smooth scroll behavior
+// Smooth scroll — ignore href="#" et href="javascript:..."
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (!href || href === '#') return; // ← laisse passer le onclick natif
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth' });
-        }
+        const target = document.querySelector(href);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
     });
 });
 
-// Add parallax effect to background pattern
-let scrollY = 0;
+// Parallax — classe corrigée
 window.addEventListener('scroll', () => {
-    scrollY = window.scrollY;
-    document.querySelector('.background-pattern').style.transform = 
-        `translate(${scrollY * 0.05}px, ${scrollY * 0.05}px)`;
+    const pattern = document.querySelector('.cross-pattern');
+    if (pattern) {
+        const scrollY = window.scrollY;
+        pattern.style.transform = `translate(${scrollY * 0.05}px, ${scrollY * 0.05}px)`;
+    }
 });
 
+// Carousel de citations
 const quotes = [
   "La prière, c'est le souffle de l'âme. Sans elle, on étouffe.",
   "Je ne promets pas de vous rendre heureux en ce monde, mais dans l'autre.",
@@ -46,3 +48,4 @@ quotes.forEach((_, i) => {
 const next = () => showQuote((cur + 1) % quotes.length);
 showQuote(0);
 let timer = setInterval(next, 5000);
+

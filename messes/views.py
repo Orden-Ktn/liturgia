@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 from .models import HoraireMesse
 
@@ -8,8 +9,12 @@ from .models import HoraireMesse
 # LISTE DES MESSES
 @login_required
 def messes(request):
-    messes = HoraireMesse.objects.all().order_by('jour', 'heure')
-    return render(request, 'messe.html', {'messes': messes})
+    qs = HoraireMesse.objects.all().order_by('jour', 'heure')
+
+    paginator = Paginator(qs, 6)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'messe.html', {'page_obj': page_obj})
 
 
 # AJOUT

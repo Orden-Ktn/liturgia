@@ -10,7 +10,7 @@ class CustomUserCreationForm(forms.ModelForm):
     )
     role = forms.ChoiceField(
         label="Rôle",
-        choices=[('vicaire', 'Vicaire'), ('secretaire', 'Secrétaire')]
+        choices=[('vicaire', 'Vicaire'), ('secretaire', 'Secrétaire'), ('stagiaire', 'Stagiaire')]
     )
 
     class Meta:
@@ -26,7 +26,7 @@ class CustomUserCreationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
-        user.role = self.cleaned_data["role"]  # ✅ rôle assigné
+        user.role = self.cleaned_data["role"]
         if commit:
             user.save()
         return user

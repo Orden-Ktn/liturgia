@@ -55,14 +55,39 @@
                 </a>
             </div>
 
-            <!-- Finances -->
-            <!-- <div class="nav-item">
-                <a href="" 
-                class="nav-link {% if request.resolver_match.url_name == 'finances' %}active{% endif %}">
-                    <i class="ri-money-dollar-circle-line nav-icon"></i>
-                    <span>Trésorerie</span>
+            <div class="nav-item">
+                <a href="{% url 'liste_demandes_faites' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'liste_demandes_faites' %}active{% endif %}">
+                    <i class="ri-check-double-line nav-icon"></i>
+                    <span>Demandes à valider</span>
                 </a>
-            </div> -->
+            </div>
+
+            <!-- libération, obsèques, mariage, baptême bébé -->
+            <div class="nav-item">
+                <a href="{% url 'autres_messes' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'autres_messes' %}active{% endif %}">
+                    <i class="ri-quill-pen-line nav-icon"></i>
+                    <span>Autres messe</span>
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="{% url 'autres_frais' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'autres_frais' %}active{% endif %}">
+                    <i class="ri-money-dollar-circle-line nav-icon"></i>
+                    <span>Autres frais</span>
+                </a>
+            </div>
+
+            <!-- Finances -->
+            <div class="nav-item">
+                <a href="{% url 'finance' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'finance' %}active{% endif %}">
+                    <i class="ri-funds-line nav-icon"></i>
+                    <span>Finances</span>
+                </a>
+            </div>
 
 
             <!-- Utilisateurs (curé seulement) -->
@@ -79,7 +104,7 @@
         </nav>
 
 
-        <div class="user-section">
+        <!-- <div class="user-section">
             <div class="user-info">
                 <div class="user-avatar">
                     <img class="avatar-icon" src="/static/images/user.png" alt="">
@@ -89,7 +114,7 @@
                     <div class="user-role">{{ request.user.role }}</div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </aside>
 
     <!-- Main Content -->
@@ -155,7 +180,7 @@
                     <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalLogout()">
                         Non
                     </button>
-                    <a href="{% url 'deconnexion' %}" type="button" class="btn-modal btn-modal-submit" style="text-decoration: none; text-align: center;">
+                    <a href="{% url 'deconnexion' %}" type="button" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">
                         Oui
                     </a>
                 </div>

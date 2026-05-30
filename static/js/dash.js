@@ -1,3 +1,6 @@
+const CATS_MONTANT = ['Denier de culte', 'Dîme', 'Don'];
+const CATS_DATE = ['Caméra', 'Photo'];
+
 // Auto-fermeture des alertes après 5 secondes
 document.addEventListener('DOMContentLoaded', function() {
     const alerts = document.querySelectorAll('.alert');
@@ -178,6 +181,81 @@ function closeModalDeleteIntention() {
 
 
 
+
+/* ---- AJOUT AUTRE MESSE ---- */
+function openModalAutreMesse() {
+    var modal = document.getElementById("modalAutreMesse");
+    if (modal) modal.style.display = "flex";
+}
+
+function closeModalAutreMesse() {
+    var modal = document.getElementById("modalAutreMesse");
+    if (modal) modal.style.display = "none";
+}
+
+/* ---- MODIFICATION AUTRE MESSE ---- */
+function openModalEditIntention(id, demandeur, categorie, date_evenement, telephone) {
+    console.log("Opening modal for ID:", id); // Pour déboguer
+    
+    // Afficher le modal
+    var modal = document.getElementById("modalEditAutreMesse");
+    if (!modal) {
+        console.error("Modal edit not found!");
+        return;
+    }
+    modal.style.display = "flex";
+    
+    // Mettre à jour l'action du formulaire
+    var form = document.getElementById("editAutreMesseForm");
+    if (form) {
+        // Utilisez l'URL directement au lieu du tag Django
+        form.action = "update_autre_messe/" + id + "/";
+        console.log("Form action set to:", form.action);
+    }
+    
+    // Remplir les champs
+    var demandeurField = document.getElementById("editDemandeur");
+    var categorieField = document.getElementById("editcategorie");
+    var date_evenementField = document.getElementById("editDateEvenement");
+    var telephoneField = document.getElementById("editTelephone");
+    
+    if (demandeurField) demandeurField.value = demandeur || '';
+    if (date_evenementField) date_evenementField.value = date_evenement || '';
+    if (telephoneField) telephoneField.value = telephone || '';
+    if (categorieField) categorieField.value = categorie || '';
+}
+
+function closeModalEditAutreMesse() {
+    var modal = document.getElementById("modalEditAutreMesse");
+    if (modal) modal.style.display = "none";
+}
+
+/* ---- SUPPRESSION AUTRE MESSE ---- */
+function openModalDeleteAutreMesse(id) {
+    console.log("Opening delete modal for ID:", id); // Pour déboguer
+    
+    var modal = document.getElementById("modalDeleteAutreMesse");
+    if (!modal) {
+        console.error("Modal delete not found!");
+        return;
+    }
+    
+    var deleteLink = document.getElementById("deleteAutreMesseLink");
+    if (deleteLink) {
+        deleteLink.href = "delete_autre_messe/" + id + "/";
+        console.log("Delete link set to:", deleteLink.href);
+    }
+    
+    modal.style.display = "flex";
+}
+
+function closeModalDeleteAutreMesse() {
+    var modal = document.getElementById("modalDeleteAutreMesse");
+    if (modal) modal.style.display = "none";
+}
+
+
+
 /* ---- AJOUT ---- */
 function openModalAddUser() {
     document.getElementById("modalAddUser").style.display = "flex";
@@ -220,3 +298,88 @@ document.querySelectorAll(".modal-overlay").forEach(function(overlay) {
 
 function openModalProfil()  { document.getElementById('modalProfil').style.display = 'flex'; }
 function closeModalProfil() { document.getElementById('modalProfil').style.display = 'none'; }
+
+
+function toggleChamps(prefix) {
+    const cat = document.getElementById(prefix + 'Categorie').value;
+    const champMontant = document.getElementById(prefix + 'ChampMontant');
+    const champDate = document.getElementById(prefix + 'ChampDate');
+    const inputMontant = champMontant.querySelector('input');
+    const inputDate = champDate.querySelector('input');
+
+    if (CATS_MONTANT.includes(cat)) {
+        champMontant.style.display = 'block';
+        inputMontant.required = true;
+        champDate.style.display = 'none';
+        inputDate.required = false;
+        inputDate.value = '';
+    } else if (CATS_DATE.includes(cat)) {
+        champDate.style.display = 'block';
+        inputDate.required = true;
+        champMontant.style.display = 'none';
+        inputMontant.required = false;
+        inputMontant.value = '';
+    } else {
+        champMontant.style.display = 'none';
+        champDate.style.display = 'none';
+        inputMontant.required = false;
+        inputDate.required = false;
+    }
+}
+
+function openModalAutreFrais() {
+    document.getElementById('addCategorie').value = '';
+    toggleChamps('add');
+    document.getElementById('modalAutreFrais').style.display = 'flex';
+}
+function closeModalAutreFrais() {
+    document.getElementById('modalAutreFrais').style.display = 'none';
+}
+
+function openModalEditAutreFrais(id, nom, telephone, categorie, montant, date) {
+    document.getElementById('editNom').value = nom;
+    document.getElementById('editTelephone').value = telephone;
+    document.getElementById('editCategorie').value = categorie;
+    toggleChamps('edit');
+    document.getElementById('editMontant').value = montant;
+    document.getElementById('editDateEvenement').value = date;
+    document.getElementById('editAutreFraisForm').action = `/intentions/autre-frais/modifier/${id}/`;
+    document.getElementById('modalEditAutreFrais').style.display = 'flex';
+}
+function closeModalEditAutreFrais() {
+    document.getElementById('modalEditAutreFrais').style.display = 'none';
+}
+
+function openModalDeleteAutreFrais(id) {
+    document.getElementById('deleteAutreFraisLink').href = `/intentions/autre-frais/supprimer/${id}/`;
+    document.getElementById('modalDeleteAutreFrais').style.display = 'flex';
+}
+function closeModalDeleteAutreFrais() {
+    document.getElementById('modalDeleteAutreFrais').style.display = 'none';
+}
+
+
+function openModalValider(id, nom) {
+    document.getElementById('validerNom').textContent = nom;
+    document.getElementById('validerLink').href = `/intentions/${id}/valider/`;
+    document.getElementById('modalValider').style.display = 'flex';
+}
+function closeModalValider() {
+    document.getElementById('modalValider').style.display = 'none';
+}
+
+function openModalRejeter(id, nom) {
+    document.getElementById('rejeterNom').textContent = nom;
+    document.getElementById('rejeterLink').href = `/intentions/${id}/rejeter/`;
+    document.getElementById('modalRejeter').style.display = 'flex';
+}
+function closeModalRejeter() {
+    document.getElementById('modalRejeter').style.display = 'none';
+}
+
+// Fermer en cliquant sur l'overlay
+['modalValider', 'modalRejeter'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+});

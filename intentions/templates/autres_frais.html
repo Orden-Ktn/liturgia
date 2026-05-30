@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" style="animation: fadeInUp 0.6s ease;">
+
+   <!-- Header + Navigation sur une seule ligne -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+
+        <!-- Titre + Navigation mois -->
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            
+            <a href="?mois={{ mois_precedent|date:'Y-m' }}"
+            style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+                    border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #555;
+                    text-decoration: none;" title="Mois précédent">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+
+            <span style="font-size: 0.95rem; font-weight: 600; color: #2e2e2e; min-width: 110px; text-align: center; text-transform: capitalize;">
+                {{ mois_actif|date:"F Y" }}
+            </span>
+
+            <a href="?mois={{ mois_suivant|date:'Y-m' }}"
+            style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+                    border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #555;
+                    text-decoration: none;" title="Mois suivant">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+
+            {% now "Y-m" as current_month %}
+            {% if mois_param != current_month %}
+                <a href="?" style="font-size: 0.82rem; color: #1e88e5; text-decoration: none;
+                    border: 1px solid #1e88e5; border-radius: 6px; padding: 0.3rem 0.75rem;">
+                    Aujourd'hui
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Boutons actions -->
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+
+            <button class="card-action" onclick="openModalAutreFrais()"
+                style="display: inline-flex; align-items: center; justify-content: center;
+                        width: 42px; height: 42px; border-radius: 8px;
+                        background-color: #59c85a; color: white;
+                        border: none; cursor: pointer; flex-shrink: 0;">
+                    <i class="ri-add-line" style="font-size: 1.1rem;"></i>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- ===== TABLEAU ===== -->
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Enregistrée par</th>
+                        <th>Type</th>
+                        <th>Demandeur</th>
+                        <th>Date de l'évènement</th>
+                        <th>Montant</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in frais %}
+                        <tr>
+                            <td>{{ f.role_enregistreur|default:"-" }}</td>
+                            <td>{{ f.categorie|default:"-" }}</td>
+                            <td>{{ f.demandeur.nom }}</td>
+                            <td>
+                                {% if f.date_evenement %}
+                                    {{ f.date_evenement }}
+                                {% else %}
+                                    <span style="color:#aaa">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if f.montant %}
+                                    {{ f.montant|floatformat:0 }} FCFA
+                                {% else %}
+                                    <span style="color:#aaa">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn btn-edit"
+                                        onclick="openModalEditAutreFrais(
+                                            '{{ f.id }}',
+                                            '{{ f.demandeur.nom|escapejs }}',
+                                            '{{ f.demandeur.telephone|escapejs }}',
+                                            '{{ f.categorie|escapejs }}',
+                                            '{{ f.montant|default:'' }}',
+                                            '{{ f.date_evenement|date:"Y-m-d"|default:'' }}'
+                                        )">
+                                        <i class="ri-edit-line"></i>
+                                    </button>
+                                    <button class="action-btn btn-delete"
+                                        onclick="openModalDeleteAutreFrais('{{ f.id }}')">
+                                        <i class="ri-delete-bin-6-line"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #aaa; padding: 2rem 0;">
+                            <i class="ri-inbox-line" style="font-size: 1.5rem; display: block; margin-bottom: 0.4rem;"></i>
+                            Aucun enregistrement pour {{ mois_actif|date:"F Y" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.4rem; margin-top: 1.5rem; flex-wrap: wrap;">
+
+        {% if page_obj.has_previous %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.previous_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span style="padding: 0.45rem 0.9rem; border-radius: 8px; background: #59c85a;
+                             color: #fff; font-size: 0.88rem; font-weight: 600;">
+                    {{ num }}
+                </span>
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a href="?mois={{ mois_param }}&page={{ num }}"
+                   style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                          background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.next_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+        {% endif %}
+
+    </div>
+    <p style="text-align: center; font-size: 0.8rem; color: #bbb; margin-top: 0.5rem;">
+        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+    </p>
+    {% endif %}
+
+</div>
+
+
+<!-- ======================== MODAL AJOUT ======================== -->
+<div class="modal-overlay" id="modalAutreFrais" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Ajout d'autre frais</h3>
+            <button class="modal-close" onclick="closeModalAutreFrais()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'ajouter_autre_frais' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-field">
+                    <label class="form-label-modal">Nom du paroissien(ne)</label>
+                    <input type="text" name="nom" class="form-input" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Téléphone</label>
+                    <input type="text" name="telephone" class="form-input">
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Catégorie</label>
+                    <select name="categorie" id="addCategorie" class="form-input" required onchange="toggleChamps('add')">
+                        <option value="">— Choisir —</option>
+                        <option value="Denier de culte">Denier de culte</option>
+                        <option value="Dîme">Dîme</option>
+                        <option value="Don">Don</option>
+                        <option value="Caméra">Caméra</option>
+                        <option value="Photo">Photo</option>
+                    </select>
+                </div>
+                <div class="form-field" id="addChampMontant" style="display:none;">
+                    <label class="form-label-modal">Montant</label>
+                    <input type="number" name="montant" min="0" class="form-input" style="width: 100%;">
+                </div>
+                <div class="form-field" id="addChampDate" style="display:none;">
+                    <label class="form-label-modal">Date de l'évènement</label>
+                    <input type="date" name="date_evenement" class="form-input" min="{{ today|date:'Y-m-d' }}" style="width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModalAutreFrais()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL MODIFICATION ======================== -->
+<div class="modal-overlay" id="modalEditAutreFrais" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Modifier la demande</h3>
+            <button class="modal-close" onclick="closeModalEditAutreFrais()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <form method="post" id="editAutreFraisForm" action="">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-field">
+                    <label class="form-label-modal">Nom du paroissien(ne)</label>
+                    <input type="text" name="nom" id="editNom" class="form-input" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Téléphone</label>
+                    <input type="text" name="telephone" id="editTelephone" class="form-input">
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Catégorie</label>
+                    <select name="categorie" id="editCategorie" class="form-input" required onchange="toggleChamps('edit')">
+                        <option value="">— Choisir —</option>
+                        <option value="Denier de culte">Denier de culte</option>
+                        <option value="Dîme">Dîme</option>
+                        <option value="Don">Don</option>
+                        <option value="Caméra">Caméra</option>
+                        <option value="Photo">Photo</option>
+                    </select>
+                </div>
+                <div class="form-field" id="editChampMontant" style="display:none;">
+                    <label class="form-label-modal">Montant</label>
+                    <input type="number" name="montant" id="editMontant" min="0" class="form-input">
+                </div>
+                <div class="form-field" id="editChampDate" style="display:none;">
+                    <label class="form-label-modal">Date de l'évènement</label>
+                    <input type="date" name="date_evenement" id="editDateEvenement" class="form-input" min="{{ today|date:'Y-m-d' }}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModalEditAutreFrais()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL SUPPRESSION ======================== -->
+<div class="modal-overlay" id="modalDeleteAutreFrais" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button class="modal-close" onclick="closeModalDeleteAutreMesse()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="text-align: center; margin: 1rem 0;">
+                Êtes-vous sûr de vouloir supprimer cette demande de messe ?<br>
+                <span style="color: red; font-size: 0.9rem;">Cette action est irréversible.</span>
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteAutreFrais()">Annuler</button>
+            <a id="deleteAutreFraisLink" href="#" class="btn-modal btn-modal-submit"
+               style="background-color: #e53935; text-decoration: none; text-align: center;">
+                Supprimer
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

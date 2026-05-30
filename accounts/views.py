@@ -2,9 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate, logout, get_user_model
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
 from .forms import CustomUserCreationForm, LoginForm
-
 User = get_user_model()
 
 
@@ -51,7 +49,7 @@ def check_login(request):
 
         if user is not None:
             auth_login(request, user)
-            return redirect('dashboard')  # adapte selon ton projet
+            return redirect('dashboard') 
         else:
             messages.error(request, "Nom d'utilisateur ou mot de passe incorrect")
 
@@ -69,7 +67,7 @@ def logout(request):
 
 
 
-# DASHBOARD (exemple)
+# DASHBOARD
 
 @login_required
 def dashboard(request):

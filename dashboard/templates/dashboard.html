@@ -18,49 +18,48 @@
             </div>
         </div> -->
 
-        <!-- Carte : Demandes totales -->
-        <div class="stat-card" style="background: #e3f2fd; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <!-- Carte : Demandes de messe simple -->
+        <div class="stat-card" style="background: #fff3e0; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
             <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="ri-file-list-3-line" style="font-size: 1.5rem; color: #1e88e5;"></i>
+                <i class="ri-file-list-3-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
             </div>
             <div>
-                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes totales</p>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes de messe simple</p>
                 <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_intentions }}</p>
             </div>
         </div>
 
-        <!-- Carte : Demandes ce mois -->
+        <div class="stat-card" style="background: #fff3e0; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-file-list-3-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes de messe ce mois-ci</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ intentions_ce_mois }}</p>
+            </div>
+        </div>
+
+        <!-- Carte : Demandes d'autres messes -->
         <div class="stat-card" style="background: #fff3e0; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
             <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <i class="ri-calendar-2-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
             </div>
             <div>
-                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Ce mois-ci</p>
-                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ intentions_ce_mois }}</p>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes d'autres messes</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_autre_messe }}</p>
             </div>
         </div>
 
-        <!-- Carte : Montant ce mois -->
-        <div class="stat-card" style="background: #f3e5f5; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div class="stat-card" style="background: #fff3e0; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
             <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: #9c27b0;"></i>
+                <i class="ri-calendar-2-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
             </div>
             <div>
-                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Montant de ce mois (FCFA)</p>
-                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_ce_mois|floatformat:0 }}</p>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demande d'autres messes ce mois-ci</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ autre_messe_ce_mois }}</p>
             </div>
         </div>
 
-        <!-- Carte : Montant total -->
-        <div class="stat-card" style="background: #fce4ec; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #e91e63;"></i>
-            </div>
-            <div>
-                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Montant total (FCFA)</p>
-                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_total|floatformat:0 }}</p>
-            </div>
-        </div>
 
     </div>
 
