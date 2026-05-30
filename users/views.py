@@ -7,7 +7,7 @@ from accounts.models import CustomUser
 
 @login_required
 def utilisateurs(request):
-    users = CustomUser.objects.exclude(role='cure').order_by('username')
+    users = CustomUser.objects.exclude(is_superuser=True).exclude(role='cure').order_by('username')
     form = CustomUserCreationForm()
     return render(request, 'users.html', {'users': users, 'form': form})
 
@@ -22,7 +22,7 @@ def ajouter_utilisateur(request):
             return redirect('users')
         else:
             # Renvoyer le formulaire avec les erreurs
-            users = CustomUser.objects.exclude(role='cure').order_by('username')
+            users = CustomUser.objects.exclude(is_superuser=True).exclude(role='cure').order_by('username')
             return render(request, 'users.html', {'users': users, 'form': form})
 
     return redirect('users')
