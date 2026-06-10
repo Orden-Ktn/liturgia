@@ -15,11 +15,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-m(e_2ytha4^6o$6ll+pc+@%qw906x^vo&u0%q3g$4&v1&7alzn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['liturgia.pythonanywhere.com', 'localhost', '127.0.0.1']
-
-
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

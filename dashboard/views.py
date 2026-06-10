@@ -30,7 +30,7 @@ def dashboard(request):
     intentions_ce_mois = Intention.objects.filter(
         date_debut__year=today.year,
         date_debut__month=today.month
-    ).count()
+    ).filter(statut='validee').count()
 
     autre_messe_ce_mois = MesseSpeciale.objects.filter(
         created_at__year=today.year,
