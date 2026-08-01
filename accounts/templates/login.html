@@ -1,0 +1,97 @@
+{% load form_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — Liturgia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="shortcut icon" href="/static/images/favicon/logo.png">
+    <link rel="stylesheet" href="/static/css/account.css">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="cross-pattern"></div>
+
+    <!-- Loader -->
+    <div class="loader-container" id="loader" style="display: none;">
+        <div class="loader"></div>
+        <div class="loader-text">Connexion en cours…</div>
+    </div>
+
+    <!-- Card -->
+    <div class="login-container">
+        <div class="login-card">
+
+            <div class="logo-container">
+                <div class="logo-ring">
+                    <img src="/static/images/logo.png" alt="Logo Liturgia">
+                </div>
+            </div>
+
+            <h2 class="title">Connexion</h2>
+            <div class="ornament">✦</div>
+
+            {% if messages %}
+                <div class="alert-container">
+                    {% for message in messages %}
+                        <div class="alert">
+                            <h4 class="alert-title">
+                                <i class="ri-information-line"></i> Liturgia
+                            </h4>
+                            <div class="alert-message">{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form class="form-validate" method="post" action="{% url 'check_login' %}" id="login-form">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="form-group">
+                        <label class="form-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+
+                        {% if field.name == 'password' %}
+                            <div class="password-wrapper">
+                                {{ field|add_class:"form-control password-input" }}
+                                <i class="ri-eye-line password-toggle"
+                                   id="password-toggle-{{ field.id_for_label }}"
+                                   onclick="togglePassword('{{ field.id_for_label }}')"></i>
+                            </div>
+                        {% else %}
+                            {{ field|add_class:"form-control" }}
+                        {% endif %}
+
+                        {% if field.errors %}
+                            <div class="error-message">
+                                <i class="ri-error-warning-line"></i>
+                                <span>{{ field.errors.0 }}</span>
+                            </div>
+                        {% endif %}
+                    </div>  
+                {% endfor %}
+
+                <button type="submit" class="btn-submit">
+                    <i class="ri-login-circle-line"></i>
+                    Se connecter
+                </button>
+            </form>
+            <!-- 
+            <div class="login-footer">
+                <p>Aucun compte ? <a href="{% url 'register' %}">Créez-en un</a></p>
+            </div> -->
+
+            <p class="parish-label">† Paroisse Sainte Bernadette Soubirous de Hêvié Dodji</p>
+        </div>
+    </div>
+
+    <script src="/static/js/accounts.js"></script>
+</body>
+</html>

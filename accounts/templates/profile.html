@@ -1,0 +1,155 @@
+{% load form_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TailorBook</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#21b623',
+                        secondary: '#16a34a',
+                        accent: '#0ea5e9',
+                        cream: '#FEF3E2'
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="shortcut icon" href="/static/images/favicon/logo.png">
+    <link rel="stylesheet" href="/static/css/account.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    
+</head>
+<body>
+    
+    <!-- Background Shapes -->
+    <div class="bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader-container" id="loader" style="display: none;">
+        <div class="loader"></div>
+        <div class="loader-text">Enregistrement en cours...</div>
+    </div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="login-card">
+            
+            <!-- Logo -->
+            <div class="logo-container">
+                <div class="logo-ring">
+                    <img src="/static/images/logo.png" alt="TailorBook Logo">
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h2 class="title" style="margin-top: -5%;">Profil</h2>
+          
+            {% if messages %}
+                <div class="alert-container">
+                    {% for message in messages %}
+                        <div class="alert">
+                            <h4 class="alert-title">
+                                <i class="ri-information-line"></i> TailorBook
+                            </h4>
+                            <div class="alert-message">{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form class="form-validate" method="post" action="{% url 'create_profile' %}" id="profile-form">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Nom Atelier -->
+                    <div>
+                        <label class="form-label">{{ form.nom_atelier.label }}</label>
+                        {{ form.nom_atelier|add_class:"form-control" }}
+                        {% if form.nom_atelier.errors %}
+                            <div class="error-message">
+                                {{ form.nom_atelier.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Contact -->
+                    <div>
+                        <label class="form-label">{{ form.contact.label }}</label>
+                        {{ form.contact|add_class:"form-control" }}
+                        {% if form.contact.errors %}
+                            <div class="error-message">
+                                {{ form.contact.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <!-- Adresse en pleine largeur -->
+                <div class="mt-6">
+                    <label class="form-label">{{ form.adresse.label }}</label>
+                    {{ form.adresse|add_class:"form-control" }}
+                    {% if form.adresse.errors %}
+                        <div class="error-message">
+                            {{ form.adresse.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                <br>
+                
+                <button type="submit" class="btn-submit">
+                    <i class="ri-checkbox-circle-line" style="margin-right: 8px;"></i>
+                    Enregistrer le profil
+                </button>
+              
+            </form>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <p style="margin-top: 8px;">© 2026 TailorBook • Tous droits réservés</p>
+            </div>
+           
+        </div>
+    </div>
+
+    <script src="/static/js/accounts.js"></script>
+    <script>
+        document.getElementById('profile-form').addEventListener('submit', function() {
+        document.getElementById('loader').style.display = 'flex';
+    });
+    </script>
+
+</body>
+</html>

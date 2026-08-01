@@ -1,0 +1,11 @@
+"# Python" 
+"__pycache__/" 
+"*.pyc" 
+"*.pyo" 
+"db.sqlite3" 
+".env" 
+".DS_Store" 
+"secret_settings.py"
+liturgia/secret_settings.py
+__pycache__/
+*.pyc

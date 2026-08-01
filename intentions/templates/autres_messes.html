@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" style="animation: fadeInUp 0.6s ease;">
+
+   <!-- Header + Navigation sur une seule ligne -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+
+        <!-- Titre + Navigation mois -->
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            
+            <a href="?mois={{ mois_precedent|date:'Y-m' }}"
+            style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+                    border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #555;
+                    text-decoration: none;" title="Mois précédent">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+
+            <span style="font-size: 0.95rem; font-weight: 600; color: #2e2e2e; min-width: 110px; text-align: center; text-transform: capitalize;">
+                {{ mois_actif|date:"F Y" }}
+            </span>
+
+            <a href="?mois={{ mois_suivant|date:'Y-m' }}"
+            style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+                    border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #555;
+                    text-decoration: none;" title="Mois suivant">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+
+            {% now "Y-m" as current_month %}
+            {% if mois_param != current_month %}
+                <a href="?" style="font-size: 0.82rem; color: #1e88e5; text-decoration: none;
+                    border: 1px solid #1e88e5; border-radius: 6px; padding: 0.3rem 0.75rem;">
+                    Aujourd'hui
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Boutons actions -->
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+
+            <button class="card-action" onclick="openModalAutreMesse()"
+                style="display: inline-flex; align-items: center; justify-content: center;
+                        width: 42px; height: 42px; border-radius: 8px;
+                        background-color: #59c85a; color: white;
+                        border: none; cursor: pointer; flex-shrink: 0;">
+                    <i class="ri-add-line" style="font-size: 1.1rem;"></i>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- ===== TABLEAU ===== -->
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Enregistrée par</th>
+                        <th>Type</th>
+                        <th>Demandeur</th>
+                        <th>Date de l'évènement</th>
+                        <th>Montant</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in messes %}
+                    <tr>
+                        <td>{{ m.role_enregistreur }}</td>
+                        <td>{{ m.categorie|default:"-" }}</td>
+                        <td>{{ m.demandeur }}</td>
+                        <td>{{ m.date_evenement }}</td>
+                        <td>{{ m.montant|floatformat:0 }} FCFA</td>
+                        <td>
+                            <div class="action-buttons">
+                                {% now "Y-m-d" as today %}
+                                {% if m.date_evenement|date:"Y-m-d" >= today %}
+                                    <button class="action-btn btn-edit"
+                                        onclick="openModalEditAutreMesse(
+                                            '{{ m.id }}',
+                                            '{{ m.demandeur.nom|escapejs }}',
+                                            '{{ m.categorie|escapejs }}',
+                                            '{{ m.horaire.id }}',
+                                            '{{ m.date_evenement|date:"Y-m-d" }}',
+                                            '{{ m.demandeur.telephone|escapejs }}'
+                                        )">
+                                        <i class="ri-edit-line"></i>
+                                    </button>
+                                    <button class="action-btn btn-delete"
+                                        onclick="openModalDeleteAutreMesse('{{ i.id }}')">
+                                        <i class="ri-delete-bin-6-line"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="action-btn btn-edit" disabled style="opacity: 0.4; cursor: not-allowed;">
+                                        <i class="ri-edit-line"></i>
+                                    </button>
+                                    <button class="action-btn btn-delete" disabled style="opacity: 0.4; cursor: not-allowed;">
+                                        <i class="ri-delete-bin-6-line"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #aaa; padding: 2rem 0;">
+                            <i class="ri-inbox-line" style="font-size: 1.5rem; display: block; margin-bottom: 0.4rem;"></i>
+                            Aucune demande pour {{ mois_actif|date:"F Y" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.4rem; margin-top: 1.5rem; flex-wrap: wrap;">
+
+        {% if page_obj.has_previous %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.previous_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span style="padding: 0.45rem 0.9rem; border-radius: 8px; background: #59c85a;
+                             color: #fff; font-size: 0.88rem; font-weight: 600;">
+                    {{ num }}
+                </span>
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a href="?mois={{ mois_param }}&page={{ num }}"
+                   style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                          background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.next_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+        {% endif %}
+
+    </div>
+    <p style="text-align: center; font-size: 0.8rem; color: #bbb; margin-top: 0.5rem;">
+        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+    </p>
+    {% endif %}
+
+</div>
+
+
+<!-- ======================== MODAL AJOUT ======================== -->
+<div class="modal-overlay" id="modalAutreMesse" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Demande d'autre messe</h3>
+            <button class="modal-close" onclick="closeModalAutreMesse()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'ajouter_autre_messe' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-field">
+                    <label class="form-label-modal">Nom du demandeur</label>
+                    <input type="text" name="nom" class="form-input" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Téléphone</label>
+                    <input type="text" name="telephone" class="form-input">
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Catégorie</label>
+                    <select name="categorie" class="form-input" required>
+                        <option value="">— Choisir —</option>
+                        <option value="Action de grâce">Action de grâce</option>
+                        <option value="Obsèques">Obsèques</option>
+                        <option value="Mariage">Mariage</option>
+                        <option value="Diplôme">Diplôme</option>
+                        <option value="Baptême bébé">Baptême bébé</option>
+                    </select>
+                </div>
+               
+                <div class="form-field">
+                    <label class="form-label-modal">Date de l'évènement</label>
+                    <input type="date" name="date_evenement" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModalAutreMesse()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL MODIFICATION ======================== -->
+<div class="modal-overlay" id="modalEditAutreMesse" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Modifier la demande</h3>
+            <button class="modal-close" onclick="closeModalEditAutreMesse()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <form method="post" id="editAutreMesseForm" action="">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-field">
+                    <label class="form-label-modal">Nom du demandeur</label>
+                    <input type="text" name="nom" id="editDemandeur" class="form-input" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Téléphone</label>
+                    <input type="text" name="telephone" id="editTelephone" class="form-input">
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Catégorie</label>
+                    <select name="categorie" id="editCategorie" class="form-input" required>
+                        <option value="">— Choisir —</option>
+                        <option value="Action de grâce">Action de grâce</option>
+                        <option value="Obsèques">Obsèques</option>
+                        <option value="Mariage">Mariage</option>
+                        <option value="Diplôme">Diplôme</option>
+                        <option value="Baptême bébé">Baptême bébé</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label-modal">Date de l'évènement</label>
+                    <input type="date" name="date_evenement" id="editDateEvenement" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModalEditAutreMesse()" class="btn-modal btn-modal-cancel">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Modifier</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ======================== MODAL SUPPRESSION ======================== -->
+<div class="modal-overlay" id="modalDeleteAutreMesse" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button class="modal-close" onclick="closeModalDeleteAutreMesse()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="text-align: center; margin: 1rem 0;">
+                Êtes-vous sûr de vouloir supprimer cette demande de messe ?<br>
+                <span style="color: red; font-size: 0.9rem;">Cette action est irréversible.</span>
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteAutreMesse()">Annuler</button>
+            <a id="deleteAutreMesseLink" href="#" class="btn-modal btn-modal-submit"
+               style="background-color: #e53935; text-decoration: none; text-align: center;">
+                Supprimer
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de paiement</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
+
+    <style>
+
+        :root {
+            --navy: #1c2b45;
+            --navy-soft: #2b3d5e;
+            --gold: #b8923f;
+            --gold-light: #e8d9b5;
+            --cream: #faf6ec;
+            --cream-deep: #f3ecd9;
+            --ink: #2c2c2c;
+            --muted: #7a7368;
+
+            --ok-bg: #eef7ee;
+            --ok-text: #1e6b30;
+            --ok-border: #c3e3c6;
+
+            --wait-bg: #fff8e6;
+            --wait-text: #96650a;
+            --wait-border: #f0d99a;
+
+            --ko-bg: #fbeceb;
+            --ko-text: #a02b23;
+            --ko-border: #f0c3bf;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(1200px 500px at 50% -10%, #fffef9 0%, var(--cream) 55%),
+                var(--cream);
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: var(--ink);
+            padding: 40px 16px 80px;
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .page-content { animation: none !important; }
+        }
+
+        .page-content {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        /* ---------- status header (all states) ---------- */
+
+        .status-wrap {
+            max-width: 640px;
+            margin: 0 auto 28px;
+            text-align: center;
+        }
+
+        .status-badge {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 8px 24px rgba(28, 43, 69, 0.12);
+        }
+
+        .status-badge.ok   { background: var(--ok-bg);   border: 1px solid var(--ok-border); }
+        .status-badge.wait { background: var(--wait-bg); border: 1px solid var(--wait-border); }
+        .status-badge.ko   { background: var(--ko-bg);   border: 1px solid var(--ko-border); }
+
+        .status-title {
+            margin: 0 0 8px;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .status-title.ok   { color: var(--ok-text); }
+        .status-title.wait { color: var(--wait-text); }
+        .status-title.ko   { color: var(--ko-text); }
+
+        .status-sub {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15.5px;
+            line-height: 1.6;
+        }
+
+        .status-ref {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 6px 16px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid var(--gold-light);
+            color: var(--navy);
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* ---------- receipt card ---------- */
+
+        .receipt {
+            max-width: 640px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--cream-deep);
+            box-shadow: 0 18px 45px rgba(28, 43, 69, 0.10);
+        }
+
+        .receipt-header {
+            background: linear-gradient(155deg, var(--navy) 0%, var(--navy-soft) 100%);
+            color: #fff;
+            padding: 30px 28px 26px;
+            position: relative;
+        }
+
+        .receipt-header::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 6px;
+            background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+        }
+
+        .receipt-header-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .receipt-header-top img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 50%;
+            padding: 6px;
+        }
+
+        .parish-name {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 21px;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .parish-place {
+            font-size: 13px;
+            color: var(--gold-light);
+            margin-top: 2px;
+            letter-spacing: 0.3px;
+        }
+
+        .receipt-ref {
+            margin-top: 22px;
+            text-align: center;
+        }
+
+        .receipt-ref span {
+            display: inline-block;
+            padding: 9px 20px;
+            border: 1px solid rgba(232, 217, 181, 0.55);
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            color: var(--gold-light);
+        }
+
+        .receipt-body {
+            padding: 28px;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 26px;
+        }
+
+        .field-label {
+            color: var(--gold);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.1px;
+        }
+
+        .field-value {
+            margin-top: 6px;
+            font-size: 16px;
+            color: var(--ink);
+        }
+
+        .field-value.strong {
+            font-weight: 700;
+        }
+
+        .field-span2 {
+            grid-column: 1 / -1;
+        }
+
+        .intention-box {
+            margin-top: 8px;
+            padding: 14px 16px;
+            background: var(--cream);
+            border: 1px solid var(--cream-deep);
+            border-radius: 10px;
+            font-size: 15.5px;
+            line-height: 1.6;
+            font-style: italic;
+            color: #3a3a3a;
+        }
+
+        .amount-box {
+            margin-top: 6px;
+            padding: 18px;
+            border-radius: 12px;
+            background: linear-gradient(155deg, #fffaf0, var(--cream-deep));
+            border: 1px solid var(--gold-light);
+            text-align: center;
+        }
+
+        .amount-box .field-label {
+            color: #9b7a2f;
+        }
+
+        .amount-value {
+            margin-top: 6px;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .txn-box {
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        .txn-box .field-label {
+            color: var(--muted);
+        }
+
+        .txn-value {
+            margin-top: 5px;
+            font-size: 12.5px;
+            color: #8a8a8a;
+            word-break: break-all;
+        }
+
+        .receipt-footer {
+            padding: 16px 28px 22px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13.5px;
+            border-top: 1px dashed var(--cream-deep);
+        }
+
+        .receipt-footer .cross {
+            color: var(--gold);
+            font-size: 16px;
+        }
+
+        /* ---------- buttons ---------- */
+
+        .actions {
+            max-width: 640px;
+            margin: 26px auto 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 26px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(28, 43, 69, 0.22);
+        }
+
+        .btn-primary:hover {
+            background: var(--navy-soft);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .btn-gold {
+            background: linear-gradient(155deg, var(--gold) 0%, #a17c30 100%);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(184, 146, 63, 0.28);
+        }
+
+        .btn-gold:hover {
+            filter: brightness(1.05);
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: var(--navy);
+            border: 1.5px solid var(--cream-deep);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid var(--gold-light);
+            outline-offset: 2px;
+        }
+
+        /* ---------- pending / failed simple states ---------- */
+
+        .simple-actions {
+            max-width: 640px;
+            margin: 30px auto 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 560px) {
+            .field-grid {
+                grid-template-columns: 1fr;
+            }
+            .receipt-header-top {
+                flex-direction: column;
+                text-align: center;
+            }
+            .status-title {
+                font-size: 25px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="page-content">
+
+    {% if intention.statut_paiement == 'paye' %}
+
+    <!-- ========================= -->
+    <!-- PAIEMENT CONFIRMÉ -->
+    <!-- ========================= -->
+
+    <div class="status-wrap">
+        <div class="status-badge ok">✅</div>
+        <h2 class="status-title ok">Paiement confirmé</h2>
+        <p class="status-sub">Votre demande de messe a été enregistrée avec succès.</p>
+    </div>
+
+    <div id="recuCard" class="receipt">
+
+        <div class="receipt-header">
+
+            <div class="receipt-header-top">
+                <img src="/static/images/sainte_bernadette.png" alt="Logo de la paroisse">
+                <div>
+                    <div class="parish-name">Paroisse Ste&nbsp;Bernadette&nbsp;Soubirous</div>
+                    <div class="parish-place">Hêvié Dodji</div>
+                </div>
+            </div>
+
+            <div class="receipt-ref">
+                <span>Reçu de demande de messe — LIT-{{ intention.id|stringformat:"05d" }}</span>
+            </div>
+
+        </div>
+
+        <div class="receipt-body">
+
+            <div class="field-grid">
+
+                <div>
+                    <div class="field-label">Demandeur</div>
+                    <div class="field-value strong">{{ intention.demandeur.nom }}</div>
+                </div>
+
+                <div>
+                    <div class="field-label">Téléphone</div>
+                    <div class="field-value">{{ intention.demandeur.telephone|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <div class="field-label">Catégorie</div>
+                    <div class="field-value">{{ intention.categorie|default:"—" }}</div>
+                </div>
+
+                <div>
+                    <div class="field-label">Date de demande</div>
+                    <div class="field-value">{{ intention.created_at|date:"d/m/Y à H\hi" }}</div>
+                </div>
+
+                <div class="field-span2">
+                    <div class="field-label">Intention</div>
+                    <div class="intention-box">{{ intention.intention }}</div>
+                </div>
+
+                <div>
+                    <div class="field-label">Date de messe</div>
+                    <div class="field-value strong">{{ intention.date_debut|date:"d/m/Y" }}</div>
+                </div>
+
+                <div>
+                    <div class="field-label">Horaire</div>
+                    <div class="field-value strong">
+                        {{ intention.horaire.get_jour_display }} à {{ intention.horaire.heure|time:"H\hi" }}
+                    </div>
+                </div>
+
+                <div class="field-span2 amount-box">
+                    <div class="field-label">Montant payé</div>
+                    <div class="amount-value">{{ intention.montant|floatformat:0 }} FCFA</div>
+                </div>
+
+                <div class="field-span2 txn-box">
+                    <div class="field-label">Référence de transaction</div>
+                    <div class="txn-value">{{ intention.transaction_id|default:"—" }}</div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="receipt-footer">
+            <span class="cross">✝</span> Merci pour votre demande. Que Dieu vous bénisse.
+        </div>
+
+    </div>
+
+    <div class="actions">
+        <button type="button" onclick="telechargerRecu()" id="downloadBtn" class="btn btn-gold">
+            <i class="ri-download-line"></i> Télécharger le reçu
+        </button>
+
+        <a href="{% url 'demande_messe' %}" class="btn btn-outline">
+            <i class="ri-home-4-line"></i> Retour à l'accueil
+        </a>
+    </div>
+
+    {% elif intention.statut_paiement == 'en_attente' %}
+
+    <!-- ========================= -->
+    <!-- PAIEMENT EN ATTENTE -->
+    <!-- ========================= -->
+
+    <div class="status-wrap">
+        <div class="status-badge wait">⏳</div>
+        <h2 class="status-title wait">Paiement en cours de confirmation</h2>
+        <p class="status-sub">
+            Votre paiement n'a pas encore été confirmé.<br>
+            Veuillez patienter quelques instants.
+        </p>
+        <div class="status-ref">LIT-{{ intention.id|stringformat:"05d" }}</div>
+    </div>
+
+    <div class="simple-actions">
+        <a href="{% url 'demande_messe' %}" class="btn btn-outline">
+            <i class="ri-home-4-line"></i> Retour à l'accueil
+        </a>
+    </div>
+
+    {% else %}
+
+    <!-- ========================= -->
+    <!-- PAIEMENT ÉCHOUÉ -->
+    <!-- ========================= -->
+
+    <div class="status-wrap">
+        <div class="status-badge ko">❌</div>
+        <h2 class="status-title ko">Paiement non confirmé</h2>
+        <p class="status-sub">
+            Le paiement n'a pas été confirmé.<br>
+            Veuillez contacter la paroisse si nécessaire.
+        </p>
+        <div class="status-ref">LIT-{{ intention.id|stringformat:"05d" }}</div>
+    </div>
+
+    <div class="simple-actions">
+        <a href="{% url 'demande_messe' %}" class="btn btn-primary">
+            <i class="ri-refresh-line"></i> Refaire une demande
+        </a>
+        <a href="{% url 'demande_messe' %}" class="btn btn-outline">
+            <i class="ri-home-4-line"></i> Retour à l'accueil
+        </a>
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+
+    function telechargerRecu() {
+
+        const carte = document.getElementById('recuCard');
+        const bouton = document.getElementById('downloadBtn');
+
+        if (!carte) {
+            alert("Le reçu n'est pas disponible.");
+            return;
+        }
+
+        const originalHTML = bouton.innerHTML;
+
+        bouton.disabled = true;
+        bouton.innerHTML = '<i class="ri-loader-4-line"></i> Génération...';
+
+        html2canvas(carte, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        })
+        .then(function (canvas) {
+
+            const reference = "LIT-{{ intention.id|stringformat:'05d' }}";
+
+            const lien = document.createElement('a');
+            lien.download = `recu-${reference}.png`;
+            lien.href = canvas.toDataURL('image/png');
+            lien.click();
+
+        })
+        .catch(function (error) {
+            console.error(error);
+            alert("Impossible de générer le reçu. Veuillez réessayer.");
+        })
+        .finally(function () {
+            bouton.disabled = false;
+            bouton.innerHTML = originalHTML;
+        });
+
+    }
+
+</script>
+</body>
+</html>

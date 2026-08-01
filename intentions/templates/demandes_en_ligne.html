@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" style="animation: fadeInUp 0.6s ease;">
+
+   <!-- Header + Navigation sur une seule ligne -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+
+    </div>
+
+    <!-- ===== TABLEAU ===== -->
+    <div class="card">
+        <div class="table-container">
+            <table>
+               <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Intention</th>
+                        <th>Jour</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in demandes %}
+                    <tr>
+                        <td>{{ d.demandeur.nom }}</td>
+                        <td><em style="font-weight: bold;">({{ d.categorie|default:"-" }})</em> {{ d.intention }}</td>
+                        <td>{{ d.date_debut }} - {{ d.horaire.get_jour_display }} {{ d.horaire.heure }}</td>
+
+                        <td>
+                            {{ d.montant|floatformat:0 }} FCFA
+                        </td>
+
+                        <td>
+
+                            {% if d.statut_paiement == 'paye' %}
+
+                                <span style="
+                                    background:#d4edda;
+                                    color:#155724;
+                                    padding:5px 10px;
+                                    border-radius:20px;
+                                    font-size:0.8rem;
+                                ">
+                                    ✓ Payé
+                                </span>
+
+                            {% elif d.statut_paiement == 'en_attente' %}
+
+                                <span style="
+                                    background:#fff3cd;
+                                    color:#856404;
+                                    padding:5px 10px;
+                                    border-radius:20px;
+                                    font-size:0.8rem;
+                                ">
+                                    ⏳ En attente
+                                </span>
+
+                            {% elif d.statut_paiement == 'annule' %}
+
+                                <span style="
+                                    background:#fff3cd;
+                                    color:#856404;
+                                    padding:5px 10px;
+                                    border-radius:20px;
+                                    font-size:0.8rem;
+                                ">
+                                    ⏳ En attente
+                                </span>
+
+                            {% elif d.statut_paiement == 'echoue' %}
+
+                                <span style="
+                                    background:#f8d7da;
+                                    color:#721c24;
+                                    padding:5px 10px;
+                                    border-radius:20px;
+                                    font-size:0.8rem;
+                                ">
+                                    ✕ Échec
+                                </span>
+
+                            {% elif d.statut_paiement == 'expire' %}
+
+                                <span style="
+                                    background:#f8d7da;
+                                    color:#291c72;
+                                    padding:5px 10px;
+                                    border-radius:20px;
+                                    font-size:0.8rem;
+                                ">
+                                    Annulé
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; color:#aaa; padding:2rem 0;">
+                            <i class="ri-inbox-line" style="font-size:1.5rem; display:block; margin-bottom:0.4rem;"></i>
+                            Aucune demande en faite en ligne
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.4rem; margin-top: 1.5rem; flex-wrap: wrap;">
+
+        {% if page_obj.has_previous %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.previous_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-left-s-line"></i>
+            </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span style="padding: 0.45rem 0.9rem; border-radius: 8px; background: #59c85a;
+                             color: #fff; font-size: 0.88rem; font-weight: 600;">
+                    {{ num }}
+                </span>
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a href="?mois={{ mois_param }}&page={{ num }}"
+                   style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                          background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?mois={{ mois_param }}&page={{ page_obj.next_page_number }}"
+               style="padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
+                      background: #fff; color: #555; text-decoration: none; font-size: 0.88rem;">
+                <i class="ri-arrow-right-s-line"></i>
+            </a>
+        {% endif %}
+
+    </div>
+    <p style="text-align: center; font-size: 0.8rem; color: #bbb; margin-top: 0.5rem;">
+        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+    </p>
+    {% endif %}
+
+</div>
+
+
+{% endblock %}

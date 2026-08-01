@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" id="dashboard-content" style="animation: fadeInUp 0.6s ease;">
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+
+        <div class="stat-card" style="background: #e3f2fd; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #1e88e5;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Montant total</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_total|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #e3f2fd; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #1e88e5;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Montant de ce mois</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_ce_mois|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #e3f2fd; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #1e88e5;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des deniers de culte</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_denier_culte|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #fce4ec; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #e91e63;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des cameras + photos</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_camera_photo|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #fce4ec; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #e91e63;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des dîmes</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_dime|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #fce4ec; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #e91e63;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des dîmes de ce mois</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_dime_ce_mois|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #f3e5f5; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #9c27b0;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des dons</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_don|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #f3e5f5; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #9c27b0;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des dons de ce mois</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_don_ce_mois|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #f3e5f5; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: #9c27b0;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Messes demandées au secrétariat ce mois</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_intention_ce_mois|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #d3efd4; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: #43a047;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Messes demandées en ligne ce mois</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_messe_en_ligne_ce_mois|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #d3efd4; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: #43a047;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des messes demandées ce mois</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_messes_demandees_ce_mois|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: #d3efd4; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: #43a047;"></i>
+            </div>
+            <div>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Autres messes de ce mois</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_autre_messe_ce_mois|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+
+    </div>
+
+  
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+{% endblock %}

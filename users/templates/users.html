@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-content" style="animation: fadeInUp 0.6s ease;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem;">Utilisateurs</h2>
+        </div>
+        <button class="card-action" style="padding: 0.75rem 1.5rem; background-color: #59c85a; color: white;" onclick="openModalAddUser()">
+            Ajouter
+        </button>
+    </div>
+
+    <!-- Tableau -->
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom d'utilisateur</th>
+                        <th>Rôle</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.get_role_display }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn btn-delete"
+                                    data-url="{% url 'delete_users' u.id %}"
+                                    data-username="{{ u.username|escapejs }}"
+                                    onclick="openModalDeleteUser(this.dataset.url, this.dataset.username)">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: red;">
+                            Aucun utilisateur enregistré
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ======================== MODAL AJOUT ======================== -->
+<div class="modal-overlay" id="modalAddUser">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Ajouter un utilisateur</h3>
+            <button class="modal-close" onclick="closeModalAddUser()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <form method="post" action="{% url 'add_users' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+
+                <div class="form-field">
+                    <label class="form-label-modal">Nom d'utilisateur</label>
+                    <input class="form-input" type="text" name="username"
+                        value="{{ form.username.value|default:'' }}"
+                        placeholder="Ex: jean.dupont" required>
+                    {% for error in form.username.errors %}
+                        <span style="color:red; font-size:0.85rem;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Mot de passe</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input class="form-input" type="password" name="password"
+                            id="password" placeholder="Mot de passe" required
+                            style="width: 100%; padding-right: 2.5rem; box-sizing: border-box;">
+                        <button type="button" onclick="togglePassword('password', this)"
+                                style="position: absolute; right: 0.75rem;
+                                    background: none; border: none; cursor: pointer; color: #888; padding: 0; line-height: 1;">
+                            <i class="ri-eye-line"></i>
+                        </button>
+                        {% for error in form.password.errors %}
+                            <span style="color:red; font-size:0.85rem;">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label-modal">Rôle</label>
+                    <select class="form-input" name="role" required>
+                        <option value="">-- Choisir un rôle --</option>
+                        <option value="vicaire"    {% if form.role.value == "vicaire"    %}selected{% endif %}>Vicaire</option>
+                        <option value="secretaire" {% if form.role.value == "secretaire" %}selected{% endif %}>Secrétaire</option>
+                        <option value="stagiaire" {% if form.role.value == "stagiaire" %}selected{% endif %}>Stagiaire</option>
+                    </select>
+                    {% for error in form.role.errors %}
+                        <span style="color:red; font-size:0.85rem;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalAddUser()">Annuler</button>
+                <button type="submit" class="btn-modal btn-modal-submit" style="background:#28a745; text-decoration:none; text-align:center;">Ajouter</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- ======================== MODAL SUPPRESSION ======================== -->
+<div class="modal-overlay" id="modalDeleteUser" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button class="modal-close" onclick="closeModalDeleteUser()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <p style="text-align: center; margin: 1rem 0;">
+                Supprimer l'utilisateur <strong id="deleteUserName"></strong> ?<br>
+                <span style="color: red; font-size: 0.9rem;">Cette action est irréversible.</span>
+            </p>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeModalDeleteUser()">
+                Annuler
+            </button>
+            <a id="deleteUserLink" href="#" class="btn-modal btn-modal-submit"
+            style="background-color: #e53935; text-decoration: none; text-align: center;">
+                Supprimer
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if form.errors %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            openModalAddUser();
+        });
+    </script>
+{% endif %}
+
+{% endblock %}

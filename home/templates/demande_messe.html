@@ -1,0 +1,452 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liturgia — Paroisse Sainte Bernadette de Hêvié Dodji</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="shortcut icon" href="/static/images/favicon/logo.png">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/static/css/home2.css">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="cross-pattern"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo-wrap">
+                <div class="logo-rings-row">
+                    <div class="logo-img-ring">
+                        <img src="/static/images/logo.png" alt="Logo Liturgia">
+                    </div>
+                    <div class="divider"></div>
+                    <div class="logo-img-ring">
+                        <img src="/static/images/sainte_bernadette.png" alt="Logo Sainte Bernadette">
+                    </div>
+                </div>
+                <h1 class="site-name">Liturgia</h1>
+                <p class="parish-name">Paroisse Sainte Bernadette Soubirous de Hêvié Dodji</p>
+            </div>
+        </header>
+
+        <main class="hero">
+
+            <h2 class="process-title" style="margin-top: -6%;">Processus de demande de messe</h2>
+
+            <div class="steps-grid">
+
+                <div class="quote-carousel">
+                    <div class="step-number">Etape 1</div>
+                    <p class="quote-text">
+                        Cliquer sur le bouton <strong>« Faire une demande »</strong> ci-dessous
+                    </p>
+                </div>
+
+                <div class="quote-carousel">
+                    <div class="step-number">Etape 2</div>
+                    <p class="quote-text">
+                        Remplir les informations demandées dans le formulaire
+                    </p>
+                </div>
+
+                <div class="quote-carousel">
+                    <div class="step-number">Etape 3</div>
+                    <p class="quote-text">
+                        Cliquer sur <strong>« Envoyer »</strong> pour soumettre votre demande
+                    </p>
+                </div>
+
+                <div class="quote-carousel">
+                    <div class="step-number">Etape 4</div>
+                    <p class="quote-text">
+                        Accéder à la page de paiement <strong>LeekPay</strong> et remplir les informations demandées
+                    </p>
+                </div>
+
+                <div class="quote-carousel">
+                    <div class="step-number">Etape 5</div>
+                    <p class="quote-text">
+                        Choisir votre opérateur <strong>MTN, Moov ou Celtiis</strong> et effectuer le paiement
+                        en suivant les instructions affichées
+                    </p>
+                </div>
+
+                <div class="quote-carousel">
+                    <div class="step-number">Etape 6</div>
+                    <p class="quote-text">
+                        Après la confirmation du paiement, consulter la page de retour et
+                        <strong>télécharger votre reçu</strong>
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="cta-group">
+                <a class="btn btn-primary" onclick="openModalDemande()">
+                    <span>Faire une demande</span>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- ======================== MODAL DEMANDE ======================== -->
+    <div class="modal-overlay" id="modalDemande" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Demande de messe</h3>
+                <button class="modal-close" onclick="closeModalDemande()">✕</button>
+            </div>
+            <form id="formDemande">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-field">
+                        <label class="form-label-modal">Jour & Heure</label>
+                        <select name="horaire_id" class="form-input" required id="selectHoraire">
+                            <option value="{{ messe.id }}" data-jour="{{ messe.get_jour_display }}" data-heure="{{ messe.heure|time:'H:i' }}">— Choisir un horaire —</option>
+                            {% for messe in messes %}
+                                <option value="{{ messe.id }}">
+                                    {{ messe.get_jour_display }} — {{ messe.heure|time:"H\hi" }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label-modal">Nom du demandeur</label>
+                        <input type="text" name="nom" class="form-input" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label-modal">Téléphone</label>
+                        <input type="text" name="telephone" class="form-input">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label-modal">Catégorie</label>
+                        <select name="categorie" class="form-input" required>
+                            <option value="">— Choisir —</option>
+                            <option value="Action de grâce">Action de grâce</option>
+                            <option value="Défunts">Défunts</option>
+                            <option value="Autres">Autres</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label-modal">Intention</label>
+                        <textarea name="intention" class="form-input" required></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label-modal">Date</label>
+                        <input type="date" name="date_debut" id="inputDate" class="form-input" min="{{ today|date:'Y-m-d' }}" required>
+                        <p id="dateHoraireError" class="form-error-msg" style="display:none;"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModalDemande()" class="btn-modal btn-modal-cancel">Annuler</button>
+                    <button type="submit" class="btn-modal btn-modal-submit">Envoyer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================== MODAL REÇU ======================== -->
+    <div class="modal-overlay" id="modalRecu" style="display:none;">
+        <div class="modal modal-recu-wrapper">
+            <div class="modal-header">
+                <h3>Votre reçu de demande</h3>
+                <button class="modal-close" onclick="closeModalRecu()">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- CARTE REÇU (sera capturée) -->
+                <div class="recu-card" id="recuCard">
+                    <div class="recu-header">
+                        <div class="recu-logo-row">
+                            <img src="/static/images/sainte_bernadette.png" alt="Logo" class="recu-logo">
+                            <div>
+                                <div class="recu-paroisse">Paroisse Ste Bernadette Soubirous</div>
+                                <div class="recu-sous">Hêvié Dodji</div>
+                            </div>
+                        </div>
+                        <div class="recu-title-block">
+                           <span class="recu-badge recu-ref">
+                                Reçu de demande de messe — <span id="recuRef"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="recu-body">
+                        <div class="recu-row">
+                            <span class="recu-label">Demandeur</span>
+                            <span class="recu-value" id="recuNom">—</span>
+                        </div>
+                        <div class="recu-row">
+                            <span class="recu-label">Téléphone</span>
+                            <span class="recu-value" id="recuTel">—</span>
+                        </div>
+                        <div class="recu-row">
+                            <span class="recu-label">Catégorie</span>
+                            <span class="recu-value" id="recuCategorie">—</span>
+                        </div>
+                        <div class="recu-row">
+                            <span class="recu-label">Date de demande</span>
+                            <span class="recu-value" id="recuDateDemande">—</span>
+                        </div>
+                        <div class="recu-row recu-row-full">
+                            <span class="recu-label">Intention</span>
+                            <span class="recu-value" id="recuIntention">—</span>
+                        </div>
+                        <div class="recu-row">
+                            <span class="recu-label">Date de messe</span>
+                            <span class="recu-value" id="recuDate">—</span>
+                        </div>
+                        <div class="recu-row">
+                            <span class="recu-label">Horaire</span>
+                            <span class="recu-value" id="recuHoraire">—</span>
+                        </div>
+                        <div class="recu-row recu-row-montant">
+                            <span class="recu-label">Montant</span>
+                            <span class="recu-value recu-montant" id="recuMontant">—</span>
+                        </div>
+                        
+                    </div>
+
+                    <div class="recu-footer">
+                        <p>✝ Merci pour votre demande. Veuillez suivre les étapes indiquées pour finaliser.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModalRecu()" class="btn-modal btn-modal-cancel">Fermer</button>
+                <button type="button" onclick="telechargerRecu()" class="btn-modal btn-modal-submit">
+                    Enregistrer le reçu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- html2canvas pour la capture -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="/static/js/home.js"></script>
+
+    <script>
+        
+        function openModalDemande() {
+            document.getElementById('modalDemande').style.display = 'flex';
+        }
+        function closeModalDemande() {
+            document.getElementById('modalDemande').style.display = 'none';
+        }
+        function closeModalRecu() {
+            document.getElementById('modalRecu').style.display = 'none';
+        }
+
+        const inputDate = document.getElementById('inputDate');
+        if (inputDate) {
+            const today = new Date().toISOString().split('T')[0];
+            inputDate.min = today;
+            inputDate.value = today; // pré-remplit avec aujourd'hui
+        }
+
+        ['modalDemande', 'modalRecu'].forEach(id => {
+            document.getElementById(id).addEventListener('click', function(e) {
+                if (e.target === this) this.style.display = 'none';
+            });
+        });
+
+        const JOURS_FR = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+        function normaliser(txt) {
+            return (txt || '')
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function getJourFrancais(dateStr) {
+            if (!dateStr) return null;
+            const d = new Date(dateStr + 'T00:00:00');
+            const jsDay = d.getDay();          // 0=Dimanche ... 6=Samedi
+            const index = (jsDay + 6) % 7;     // 0=Lundi ... 6=Dimanche
+            return JOURS_FR[index];
+        }
+
+        // Extrait "Samedi" et "06:30" depuis un texte du type "Samedi — 06h30"
+        function extraireJourHeureDepuisTexte(texte) {
+            const match = (texte || '').match(/^(.+?)\s*(?:—|-)\s*(\d{1,2})h(\d{2})/i);
+            if (!match) return null;
+            return {
+                jour: match[1].trim(),
+                heure: `${match[2].padStart(2, '0')}:${match[3]}`
+            };
+        }
+
+        // Récupère jour + heure d'une option : data-attributs en priorité, sinon texte
+        function getInfosHoraire(option) {
+            let jour = option.getAttribute('data-jour');
+            let heure = option.getAttribute('data-heure');
+
+            if (!jour || !heure) {
+                const parsed = extraireJourHeureDepuisTexte(option.textContent);
+                if (parsed) {
+                    jour = jour || parsed.jour;
+                    heure = heure || parsed.heure;
+                }
+            }
+
+            return { jour, heure };
+        }
+
+        function validerDateHoraire() {
+            const selectHoraire = document.getElementById('selectHoraire')
+                || document.querySelector('select[name="horaire_id"]');
+            const inputDateEl   = document.getElementById('inputDate');
+            const errorBox      = document.getElementById('dateHoraireError');
+            const submitBtn     = document.querySelector('#formDemande button[type="submit"]');
+
+            errorBox.style.display = 'none';
+            errorBox.textContent = '';
+            inputDateEl.classList.remove('input-error');
+            if (submitBtn) submitBtn.disabled = false;
+
+            const option  = selectHoraire.options[selectHoraire.selectedIndex];
+            const dateStr = inputDateEl.value;
+
+            if (!option || !option.value || !dateStr) {
+                return true;
+            }
+
+            const { jour: jourAttendu, heure: heureAttendue } = getInfosHoraire(option);
+            const jourChoisi = getJourFrancais(dateStr);
+
+            function afficherErreur(msg) {
+                errorBox.textContent = msg;
+                errorBox.style.display = 'block';
+                inputDateEl.classList.add('input-error');
+                if (submitBtn) submitBtn.disabled = true;
+            }
+
+            if (!jourAttendu || !heureAttendue) {
+                // Sécurité : si on n'arrive toujours pas à lire l'horaire, on bloque
+                afficherErreur("Impossible de vérifier cet horaire. Veuillez le resélectionner.");
+                return false;
+            }
+
+            if (normaliser(jourChoisi) !== normaliser(jourAttendu)) {
+                afficherErreur(
+                    `La date choisie tombe sur un ${jourChoisi}, mais l'horaire sélectionné ` +
+                    `a lieu le ${jourAttendu}. Choisissez une date qui tombe sur un ${jourAttendu}, ` +
+                    `ou changez d'horaire.`
+                );
+                return false;
+            }
+
+            const [h, m] = heureAttendue.split(':').map(Number);
+            const messeDate = new Date(dateStr + 'T00:00:00');
+            messeDate.setHours(h, m, 0, 0);
+
+            if (messeDate.getTime() <= Date.now()) {
+                afficherErreur(
+                    "Cette messe a déjà eu lieu ou est sur le point de commencer. " +
+                    "Veuillez choisir une date ou un horaire ultérieur."
+                );
+                return false;
+            }
+
+            return true;
+        }
+
+        function afficherToast(message, type = 'error') {
+            const container = document.getElementById('toastContainer');
+
+            const icones = {
+                error: '⚠️',
+                success: '✅',
+                warning: '⏳'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type === 'error' ? '' : type}`.trim();
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icones[type] || icones.error}</span>
+                <span>${message}</span>
+                <button type="button" class="toast-close" aria-label="Fermer">✕</button>
+            `;
+
+            container.appendChild(toast);
+
+            function retirer() {
+                toast.classList.add('toast-hide');
+                toast.addEventListener('animationend', () => toast.remove(), { once: true });
+            }
+
+            toast.querySelector('.toast-close').addEventListener('click', retirer);
+
+            setTimeout(retirer, 6000);
+        }
+
+        document.getElementById('formDemande').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+            const submitBtn = form.querySelector('[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Envoi…';
+            const formData = new FormData(form);
+            try {
+                const response = await fetch("{% url 'faire_demande_messe' %}", {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') },
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+
+                    // LeekPay nous donne l'URL du paiement
+                    if (data.payment_url) {
+
+                        window.location.href = data.payment_url;
+
+                        return;
+                    }
+
+                    afficherToast(
+                        'La demande a été créée, mais le lien de paiement est indisponible.',
+                        'warning'
+                    );
+
+                } else {
+
+                    afficherToast(
+                        data.error || 'Veuillez réessayer.',
+                        'error'
+                    );
+                }
+            } catch (err) {
+                afficherToast('Une erreur réseau est survenue.', 'error');
+                console.error(err);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enregistrer';
+            }
+        });
+
+        function telechargerRecu() {
+            const carte = document.getElementById('recuCard');
+            const ref   = document.getElementById('recuRef').textContent || 'recu';
+            html2canvas(carte, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+                .then(canvas => {
+                    const lien = document.createElement('a');
+                    lien.download = `recu-${ref}.png`;
+                    lien.href = canvas.toDataURL('image/png');
+                    lien.click();
+                });
+        }
+
+    </script>
+
+
+    <div class="toast-container" id="toastContainer"></div>
+
+</body>
+
+</html>

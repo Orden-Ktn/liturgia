@@ -1,0 +1,317 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --gold:         #C9A84C;
+    --gold-light:   #E8D08A;
+    --gold-dark:    #8A6A1F;
+    --ivory:        #F5F0E8;
+    --parchment:    #EDE4D0;
+    --deep:         #1A1209;
+    --text:         #2E200A;
+    --card-bg:      #fffdf8;
+    --input-bg:     #f9f5ed;
+    --border:       #c9a84c30;
+    --border-focus: #c9a84c80;
+    --text-muted:   #9a7c4a;
+}
+
+body {
+    font-family: 'EB Garamond', Georgia, serif;
+    background-color: var(--ivory);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* ── Background ── */
+.bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+        radial-gradient(ellipse 70% 50% at 50% 0%,  #e8d08a35 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 85% 85%,  #c9a84c18 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 10% 60%,  #8a6a1f12 0%, transparent 60%),
+        linear-gradient(160deg, #f5f0e8 0%, #ede4d0 100%);
+}
+
+.cross-pattern {
+    position: fixed; inset: 0; z-index: 0; opacity: .05;
+    background-image:
+        repeating-linear-gradient(0deg,  transparent, transparent 39px, var(--gold) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, var(--gold) 40px);
+}
+
+/* ── Loader ── */
+.loader-container {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--ivory);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+}
+.loader {
+    width: 44px; height: 44px;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+.loader-text {
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    letter-spacing: .2em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    opacity: .8;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Card ── */
+.login-container {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 440px;
+    padding: 16px;
+    animation: rise .9s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.login-card {
+    background: var(--card-bg);
+    border: 1px solid #c9a84c35;
+    border-radius: 6px;
+    padding: 44px 40px 36px;
+    position: relative;
+    box-shadow:
+        0 0 0 1px #c9a84c08,
+        0 24px 48px #c9a84c10,
+        0 6px 16px #8a6a1f14;
+}
+
+/* top gold line */
+.login-card::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 55%; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+/* bottom accent */
+.login-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 30%; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold-light), transparent);
+}
+
+/* ── Logo ── */
+.logo-container {
+    display: flex; justify-content: center;
+    margin-bottom: 24px;
+}
+
+.logo-ring {
+    position: relative;
+    width: 80px; height: 80px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.logo-ring::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    opacity: .35;
+    animation: ring-spin 14s linear infinite;
+}
+
+.logo-ring img {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    object-fit: contain;
+    border: 2px solid var(--gold);
+    padding: 8px;
+    background: #fffdf8;
+    animation: halo 4s ease-in-out infinite;
+}
+
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+@keyframes halo {
+    0%,100% { box-shadow: 0 0 12px #c9a84c22; }
+    50%      { box-shadow: 0 0 26px #c9a84c50; }
+}
+
+/* ── Title ── */
+.title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    text-align: center;
+    background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 55%, #b8892e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 28px;
+}
+
+.ornament {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 28px; color: var(--gold); font-size: .8rem;
+}
+.ornament::before, .ornament::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+
+/* ── Alert ── */
+.alert-container { margin-bottom: 20px; }
+
+.alert {
+    background: #fdf0f0;
+    border: 1px solid #e0a0a055;
+    border-left: 3px solid #c0392b;
+    border-radius: 3px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+
+.alert-title {
+    font-family: 'Cinzel', serif;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    color: #a03030;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: flex; align-items: center; gap: 6px;
+}
+
+.alert-message {
+    font-size: .9rem;
+    color: #8b3030;
+    line-height: 1.5;
+}
+
+/* ── Form ── */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    opacity: .9;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color .25s, box-shadow .25s;
+}
+
+.form-control::placeholder { color: #c4ae84; }
+
+.form-control:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px #c9a84c14;
+    background: #fffdf8;
+}
+
+/* password wrapper */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper .form-control {
+    padding-right: 42px;
+}
+
+.password-toggle {
+    position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: color .2s;
+}
+.password-toggle:hover { color: var(--gold-dark); }
+
+/* errors */
+.error-message {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 6px;
+    font-size: .82rem;
+    color: #b03030;
+}
+
+/* ── Submit ── */
+.btn-submit {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    border: none;
+    border-radius: 3px;
+    font-family: 'Cinzel', serif;
+    font-size: .8rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: #fffdf8;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .3s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.btn-submit:hover {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--deep);
+    box-shadow: 0 6px 28px #c9a84c38;
+    transform: translateY(-2px);
+}
+
+.btn-submit:active { transform: translateY(0); }
+
+/* ── Footer ── */
+.login-footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #c9a84c20;
+    font-size: .88rem;
+    color: var(--text-muted);
+}
+
+.login-footer a {
+    color: var(--gold-dark);
+    text-decoration: none;
+    transition: color .2s;
+}
+.login-footer a:hover { color: var(--text); }
+
+/* ── Parish label ── */
+.parish-label {
+    text-align: center;
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: .82rem;
+    color: var(--gold-dark);
+    letter-spacing: .05em;
+    margin-top: 18px;
+    opacity: .75;
+}
