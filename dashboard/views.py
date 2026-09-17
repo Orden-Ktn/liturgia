@@ -6,16 +6,36 @@ from intentions.models import AutreFrais, Intention, MesseSpeciale
 from messes.models import HoraireMesse
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
 from django.contrib.auth import logout, update_session_auth_hash
-from django.db.models import Count, Sum
+from django.db.models import Q, Count, Sum
 from django.utils.timezone import now
 from collections import OrderedDict
 from django.db.models import Sum
 from django.utils import timezone
+from datetime import timedelta
+from django.core.paginator import Paginator
+from decimal import Decimal, InvalidOperation
 
 
 today = now().date()
+
+
+def get_semaine_mercredi_mardi(d=None):
+    """
+    Retourne (debut_semaine, fin_semaine) où la semaine va
+    du mercredi au mardi suivant (inclus), pour la date `d`.
+    Si d est None, utilise la date du jour.
+    """
+    if d is None:
+        d = timezone.localdate()
+
+    # Mercredi = 2 dans weekday() (Lundi=0 ... Dimanche=6)
+    jours_depuis_mercredi = (d.weekday() - 2) % 7
+    debut_semaine = d - timedelta(days=jours_depuis_mercredi)
+    fin_semaine = debut_semaine + timedelta(days=6)  # le mardi suivant
+
+    return debut_semaine, fin_semaine
+
 
 @login_required
 def dashboard(request):
@@ -27,11 +47,40 @@ def dashboard(request):
     total_intentions_ligne = Intention.objects.filter(statut_paiement='paye').count()
     total_autre_messe = MesseSpeciale.objects.count()
 
+    debut_semaine, fin_semaine = get_semaine_mercredi_mardi()
+
+    montant_messe_secretariat_cette_semaine = Intention.objects.filter(
+        date_debut__range=(debut_semaine, fin_semaine),
+        statut='validee'
+    ).aggregate(total=Sum("montant"))["total"] or 0
+
+    # ===== DEUX DERNIÈRES SEMAINES (mercredi -> mardi) =====
+    semaines = []
+    for offset in [0, 1]:  # 0 = semaine en cours, 1 = semaine précédente
+        date_ref = today - timedelta(weeks=offset)
+        debut_s, fin_s = get_semaine_mercredi_mardi(date_ref)
+
+        stats_semaine = Intention.objects.filter(
+            date_debut__range=(debut_s, fin_s),
+            statut='validee'
+        ).aggregate(
+            nombre_messes=Count('id'),
+            montant_total=Sum('montant')
+        )
+
+        semaines.append({
+            'label': "Semaine en cours" if offset == 0 else "Semaine précédente",
+            'debut_semaine': debut_s,
+            'fin_semaine': fin_s,
+            'nombre_messes': stats_semaine['nombre_messes'] or 0,
+            'montant_total': stats_semaine['montant_total'] or 0,
+        })
+
     # mois courant
     intentions_ce_mois = Intention.objects.filter(
         created_at__year=today.year,
         created_at__month=today.month
-    ).filter(Q(statut='validee')|Q(statut_paiement='paye')).count()
+    ).filter(Q(statut='validee') | Q(statut_paiement='paye')).count()
 
     autre_messe_ce_mois = MesseSpeciale.objects.filter(
         created_at__year=today.year,
@@ -53,15 +102,20 @@ def dashboard(request):
         "intentions_ce_mois": intentions_ce_mois,
         "dernieres_intentions": dernieres_intentions,
         "autre_messe_ce_mois": autre_messe_ce_mois,
+        'montant_messe_secretariat_cette_semaine': montant_messe_secretariat_cette_semaine,
+        'semaines': semaines,
     }
 
     return render(request, "dashboard.html", context)
 
 
-
 @login_required
 def finance(request):
     today = timezone.now().date()
+
+    debut_semaine = today - timedelta(days=today.weekday())
+
+    fin_semaine = debut_semaine + timedelta(days=6)
 
     # Intentions de messe simples 
     montant_intention_total = Intention.objects.filter(
@@ -70,20 +124,32 @@ def finance(request):
         total=Sum("montant")
     )["total"] or 0
 
-    montant_intention_ce_mois = Intention.objects.filter(
-        date_debut__year=today.year,
-        date_debut__month=today.month
-    ).filter(statut='validee').aggregate(total=Sum("montant"))["total"] or 0
+    debut_semaine, fin_semaine = get_semaine_mercredi_mardi()
+    
+    montant_messe_cette_semaine = Intention.objects.filter(
+        date_debut__range=(debut_semaine, fin_semaine),
+        statut='validee'
+    ).aggregate(total=Sum("montant"))["total"] or 0
 
+    #montants messes demandees cette semaine
+    montant_messe_secretariat_cette_semaine = Intention.objects.filter(
+        date_debut__range=(debut_semaine, fin_semaine), statut='validee').aggregate(total=Sum("montant"))["total"] or 0
+
+    montant_messe_en_ligne_cette_semaine = Intention.objects.filter(
+            date_debut__range=(debut_semaine, fin_semaine), statut_paiement='paye').aggregate(total=Sum("montant"))["total"] or 0
+    
+    montant_messes_demandees_cette_semaine = montant_messe_secretariat_cette_semaine + montant_messe_en_ligne_cette_semaine
+
+    #montants messes demandees ce mois
+    montant_messe_secretariat_ce_mois = Intention.objects.filter(
+            date_debut__year=today.year,
+            date_debut__month=today.month, statut='validee').aggregate(total=Sum("montant"))["total"] or 0
+    
     montant_messe_en_ligne_ce_mois = Intention.objects.filter(
             date_debut__year=today.year,
-            date_debut__month=today.month
-        ).filter(statut_paiement='paye').aggregate(total=Sum("montant"))["total"] or 0
+            date_debut__month=today.month, statut_paiement='paye').aggregate(total=Sum("montant"))["total"] or 0
     
-    montant_messes_demandees_ce_mois = Intention.objects.filter(
-            date_debut__year=today.year,
-            date_debut__month=today.month
-        ).filter(Q(statut='validee')|Q(statut_paiement='paye')).aggregate(total=Sum("montant"))["total"] or 0
+    montant_messes_demandees_ce_mois = montant_messe_secretariat_ce_mois + montant_messe_en_ligne_ce_mois
 
     # Autres messes (MesseSpeciale) 
     montant_autre_messe_total = MesseSpeciale.objects.aggregate(
@@ -125,8 +191,8 @@ def finance(request):
         created_at__month=today.month
     ).aggregate(total=Sum("montant"))["total"] or 0
 
-    montant_total    = montant_intention_total + montant_autre_messe_total + total_autres_frais + montant_messe_en_ligne_ce_mois
-    montant_ce_mois  = montant_intention_ce_mois + montant_autre_messe_ce_mois + total_autres_frais_ce_mois
+    montant_total    = montant_intention_total + montant_autre_messe_total + total_autres_frais
+    montant_ce_mois  = montant_messe_secretariat_ce_mois + montant_autre_messe_ce_mois + total_autres_frais_ce_mois
 
     return render(request, "finance.html", {
         # Globaux
@@ -134,9 +200,12 @@ def finance(request):
         "montant_ce_mois":              montant_ce_mois,
         # Intentions simples
         "montant_intention_total":      montant_intention_total,
-        "montant_intention_ce_mois":    montant_intention_ce_mois,
+        "montant_messe_secretariat_ce_mois":    montant_messe_secretariat_ce_mois,
         "montant_messe_en_ligne_ce_mois": montant_messe_en_ligne_ce_mois,
         "montant_messes_demandees_ce_mois": montant_messes_demandees_ce_mois,
+        "montant_messe_secretariat_cette_semaine":    montant_messe_secretariat_cette_semaine,
+        "montant_messe_en_ligne_cette_semaine": montant_messe_en_ligne_cette_semaine,
+        "montant_messes_demandees_cette_semaine": montant_messes_demandees_cette_semaine,
         # Autres messes
         "montant_autre_messe_total":    montant_autre_messe_total,
         "montant_autre_messe_ce_mois":  montant_autre_messe_ce_mois,
@@ -147,6 +216,7 @@ def finance(request):
         "total_don":                    total_don,
         "total_don_ce_mois":            total_don_ce_mois,
         "total_camera_photo":           total_camera_photo,
+        "montant_messe_cette_semaine":  montant_messe_cette_semaine,
     })
 
     
@@ -195,4 +265,70 @@ def update_profil(request):
         return redirect(request.META.get('HTTP_REFERER', 'login'))
 
     return redirect('login')
+
+
+
+@login_required
+def garde_moto(request):
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        groupe = request.POST.get('groupe')
+        montant_total_raw = request.POST.get('montant_total')
+
+        if not date or not montant_total_raw:
+            messages.error(request, "La date et le montant total sont obligatoires.")
+            return redirect('garde_moto')
+
+        try:
+            montant_total = Decimal(montant_total_raw)
+        except InvalidOperation:
+            messages.error(request, "Le montant total doit être un nombre valide.")
+            return redirect('garde_moto')
+
+        try:
+            GardeMoto.objects.create(
+                date=date,
+                groupe=groupe,
+                montant_total=montant_total,
+            )
+            messages.success(request, "Enregistrement effectué avec succès.")
+        except Exception as e:
+            messages.error(request, f"Erreur lors de l'enregistrement : {e}")
+
+        return redirect('garde_moto')
+
+    qs = GardeMoto.objects.all()
+    montant_total = GardeMoto.objects.aggregate(
+        total=Sum("montant_total")
+    )["total"] or 0
+    montant_em = GardeMoto.objects.aggregate(
+        total=Sum("montant_em")
+    )["total"] or 0
+    montant_groupe = GardeMoto.objects.aggregate(
+        total=Sum("montant_groupe")
+    )["total"] or 0
+    montant_caritas = GardeMoto.objects.aggregate(
+        total=Sum("montant_caritas")
+    )["total"] or 0
+    montant_jeunesse = GardeMoto.objects.aggregate(
+            total=Sum("montant_jeunesse")
+    )["total"] or 0
+    montant_paroisse = GardeMoto.objects.aggregate(
+        total=Sum("montant_paroisse")
+    )["total"] or 0
+    page_param = request.GET.get('page', 1)
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(page_param)
+
+    return render(request, 'garde_moto.html', 
+        {
+            'page_obj': page_obj, 
+            'montant_total':montant_total, 
+            'montant_em':montant_em, 
+            'montant_groupe':montant_groupe, 
+            'montant_caritas':montant_caritas, 
+            'montant_jeunesse':montant_jeunesse, 
+            'montant_paroisse':montant_paroisse
+        }
+    )
 

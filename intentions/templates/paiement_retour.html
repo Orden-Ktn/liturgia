@@ -407,7 +407,7 @@
             <div class="receipt-header-top">
                 <img src="/static/images/sainte_bernadette.png" alt="Logo de la paroisse">
                 <div>
-                    <div class="parish-name">Paroisse Ste&nbsp;Bernadette&nbsp;Soubirous</div>
+                    <div class="parish-name">Paroisse Sainte&nbsp;Bernadette&nbsp;Soubirous</div>
                     <div class="parish-place">Hêvié Dodji</div>
                 </div>
             </div>
@@ -424,7 +424,7 @@
 
                 <div>
                     <div class="field-label">Demandeur</div>
-                    <div class="field-value strong">{{ intention.demandeur.nom }}</div>
+                    <div class="field-value strong">{{ intention.demandeur.nom|default:"—" }}</div>
                 </div>
 
                 <div>

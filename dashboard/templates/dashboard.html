@@ -24,18 +24,18 @@
                 <i class="ri-file-list-3-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
             </div>
             <div>
-                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes de messe au secrétariat</p>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Total des demandes de messe</p>
                 <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_intentions_sg }}</p>
             </div>
         </div>
 
         <div class="stat-card" style="background: #fff3e0; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
             <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="ri-calendar-2-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
+                <i class="ri-money-cny-circle-line" style="font-size: 1.5rem; color: #fb8c00;"></i>
             </div>
             <div>
-                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes de messe en ligne</p>
-                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ total_intentions_ligne }}</p>
+                <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes de messe cette semaine</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_messe_secretariat_cette_semaine }} FCFA</p>
             </div>
         </div>
 
@@ -59,6 +59,32 @@
                 <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ autre_messe_ce_mois }}</p>
             </div>
         </div>
+
+        {% for semaine in semaines %}
+            <div class="stat-card" style="background: #e3f2fd; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ri-calendar-2-line" style="font-size: 1.5rem; color: #1e88e5;"></i>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">{{ semaine.label }}</p>
+                        <p style="font-size: 0.85rem; font-weight: 600; margin: 0; color: #2e2e2e;">
+                            Du {{ semaine.debut_semaine|date:"d/m/Y" }} au {{ semaine.fin_semaine|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 0.75rem;">
+                    <div>
+                        <p style="font-size: 0.72rem; color: #999; margin: 0;">Nb. messes</p>
+                        <p style="font-size: 1.3rem; font-weight: 700; margin: 0; color: #2e2e2e;">{{ semaine.nombre_messes }}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 0.72rem; color: #999; margin: 0;">Montant</p>
+                        <p style="font-size: 1.3rem; font-weight: 700; margin: 0; color: #1e88e5;">{{ semaine.montant_total }} FCFA</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
 
     </div>
 

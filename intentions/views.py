@@ -190,7 +190,7 @@ def ajouter_autre_frais(request):
             return redirect('autres_frais')
 
         CATEGORIES_AVEC_DATE = ['Caméra', 'Photo']
-        CATEGORIES_AVEC_MONTANT = ['Denier de culte', 'Dîme', 'Don']
+        CATEGORIES_AVEC_MONTANT = ['Denier de culte', 'Dîme', 'Don simple', 'Don hostie & vin']
 
         date_evenement = None
         montant = None
@@ -257,7 +257,7 @@ def modifier_autre_frais(request, id):
             return redirect('autres_frais')
 
         CATEGORIES_AVEC_DATE = ['Caméra', 'Photo']
-        CATEGORIES_AVEC_MONTANT = ['Denier de culte', 'Dîme', 'Don']
+        CATEGORIES_AVEC_MONTANT = ['Denier de culte', 'Dîme', 'Don simple', 'Don hostie & vin']
 
         frais.date_evenement = None
         frais.montant = None
@@ -365,7 +365,7 @@ def intentions(request):
 @login_required
 def ajouter_intention(request):
     if request.method == "POST":
-        nom = request.POST.get('nom')
+        nom = request.POST.get('nom', '').strip()
         telephone = request.POST.get('telephone')
         categorie = request.POST.get('categorie')
         intention_text = request.POST.get('intention')
@@ -373,9 +373,13 @@ def ajouter_intention(request):
         date_fin_str = request.POST.get('date_fin')
         horaire_id = request.POST.get('horaire_id')
 
-        if not nom or not intention_text or not date_debut_str:
+        if not nom:
+            nom = 'anonyme'
+
+        if not intention_text or not date_debut_str:
             messages.error(request, "Champs obligatoires manquants")
             return redirect('intentions')
+        
 
         demandeur = Demandeur.objects.create(
             nom=nom,
@@ -543,25 +547,21 @@ def _get_styles():
             textColor=colors.HexColor("#555555"), alignment=TA_CENTER, spaceAfter=2,
         ),
         'jour': ParagraphStyle(
-            'jour', fontSize=11, fontName='Helvetica-Bold',
-            textColor=BLANC, alignment=TA_LEFT, leftIndent=6, spaceAfter=0, leading=16,
+            'jour', fontSize=13, fontName='Helvetica-Bold',
+            textColor=JOUR_BG, alignment=TA_LEFT, leftIndent=0, spaceAfter=2, leading=17,
         ),
         'horaire': ParagraphStyle(
-            'horaire', fontSize=10, fontName='Helvetica-Bold',
-            textColor=BLANC, alignment=TA_LEFT, leftIndent=6, spaceAfter=0, leading=14,
-        ),
-        'cat': ParagraphStyle(
-            'cat', fontSize=9, fontName='Helvetica-Bold',
-            textColor=BLANC, alignment=TA_LEFT, leftIndent=4, spaceAfter=0, leading=13,
+            'horaire', fontSize=11, fontName='Helvetica-Bold',
+            textColor=GRIS_BLEU, alignment=TA_LEFT, leftIndent=10, spaceAfter=2, leading=15,
         ),
         'cell': ParagraphStyle(
-            'cell', fontSize=9, fontName='Helvetica', textColor=TEXTE, leading=12,
+            'cell', fontSize=13, fontName='Helvetica', textColor=TEXTE, leading=14,
         ),
         'cell_bold': ParagraphStyle(
-            'cellBold', fontSize=9, fontName='Helvetica-Bold', textColor=TEXTE, leading=12,
+            'cellBold', fontSize=11, fontName='Helvetica-Bold', textColor=TEXTE, leading=14,
         ),
         'footer': ParagraphStyle(
-            'footer', fontSize=8, fontName='Helvetica',
+            'footer', fontSize=10, fontName='Helvetica',
             textColor=colors.HexColor("#999999"), alignment=TA_CENTER,
         ),
         'diocese': ParagraphStyle(
@@ -573,14 +573,21 @@ def _get_styles():
             textColor=colors.HexColor("#555555"), alignment=TA_CENTER, spaceAfter=3,
         ),
         'paroisse': ParagraphStyle(
-            'paroisse', fontSize=11, fontName='Helvetica-Bold',
-            textColor=TEXTE, alignment=TA_CENTER, spaceAfter=0,
+            'paroisse', fontSize=11, fontName='Helvetica',
+            textColor=colors.HexColor("#0A0A0A"),  alignment=TA_CENTER, spaceAfter=0,
         ),
         'vide': ParagraphStyle(
             'vide', fontSize=11, textColor=colors.grey, alignment=TA_CENTER,
         ),
     }
 
+
+def _cat_style(couleur):
+    """Style dynamique pour le libellé de catégorie, coloré selon la catégorie."""
+    return ParagraphStyle(
+        'catDyn', fontSize=10.5, fontName='Helvetica-Bold',
+        textColor=couleur, alignment=TA_LEFT, leftIndent=18, spaceAfter=2, leading=14,
+    )
 
 
 #  Fonction centrale
@@ -610,9 +617,11 @@ def _build_pdf(response, intentions_qs, label_periode, today):
 
     # ── En-tête ──
     texte_entete = [
-        Paragraph("Archidiocèse de Cotonou",                   s['diocese']),
-        Paragraph("Vicariat Forain Saint Luc de Ouèdo",        s['vicariat']),
-        Paragraph("Paroisse Sainte Bernadette Soubirous de Hêvié Dodji", s['paroisse']),
+        Paragraph("ARCHIDIOCESE DE COTONOU",                   s['paroisse']),
+        Paragraph("VICARIAT FORAIN SAINT LUC DE OUEDO",        s['paroisse']),
+        Paragraph("PAROISSE SAINTE BERNADETTE SOUBIROUS DE HEVIE DODJI", s['paroisse']),
+        Paragraph("Contacts : 01 61 33 33 98 / 01 68 83 63 65", s['paroisse']),
+        Paragraph("Email : paroisse.stebernadettehevie@gmail.com", s['paroisse']),
     ]
     entete = Table(
         [[_logo(LOGO_GAUCHE), texte_entete, _logo(LOGO_DROIT)]],
@@ -641,9 +650,6 @@ def _build_pdf(response, intentions_qs, label_periode, today):
             "Aucune intention enregistrée pour cette période.", s['vide']
         ))
     else:
-        # 2 colonnes : Intention | Demandeur
-        col_widths = [doc.width * 0.65, doc.width * 0.35]
-
         for jour_date in sorted(groupes.keys()):
             horaires_du_jour = groupes[jour_date]   # { horaire_obj: { cat: [intentions] } }
 
@@ -656,23 +662,18 @@ def _build_pdf(response, intentions_qs, label_periode, today):
 
             nom_jour = JOURS_FR.get(jour_date.weekday(), "")
 
-            # ── Bandeau jour (noir) ──
-            bandeau_jour = Table(
-                [[Paragraph(
-                    f"  {nom_jour} {jour_date.strftime('%d/%m/%Y')}"
-                    f"   —   {total_jour} intention{'s' if total_jour > 1 else ''}",
-                    s['jour']
-                )]],
-                colWidths=[doc.width],
+            # ── Titre jour (texte coloré, sans fond) ──
+            texte_jour = Paragraph(
+                f"{nom_jour} {jour_date.strftime('%d/%m/%Y')}"
+                f"  —  {total_jour} intention{'s' if total_jour > 1 else ''}",
+                s['jour']
             )
-            bandeau_jour.setStyle(TableStyle([
-                ('BACKGROUND',    (0,0),(-1,-1), JOUR_BG),
-                ('TOPPADDING',    (0,0),(-1,-1), 7),
-                ('BOTTOMPADDING', (0,0),(-1,-1), 7),
-                ('LEFTPADDING',   (0,0),(-1,-1), 8),
-            ]))
 
-            blocs = [bandeau_jour]
+            blocs = [
+                texte_jour,
+                HRFlowable(width="100%", thickness=1.2, color=JOUR_BG,
+                           spaceBefore=2, spaceAfter=8),
+            ]
 
             # ── Trier les horaires par heure ──
             def _heure_sort(h):
@@ -688,63 +689,68 @@ def _build_pdf(response, intentions_qs, label_periode, today):
                     if horaire_obj and horaire_obj.heure else "—"
                 )
 
-                # ── Bandeau horaire (gris-bleu) ──
-                bandeau_horaire = Table(
-                    [[Paragraph(
-                        f"  {heure_label}"
-                        f"   —   {total_horaire} intention{'s' if total_horaire > 1 else ''}",
-                        s['horaire']
-                    )]],
-                    colWidths=[doc.width],
+                # ── Titre horaire (texte coloré, sans fond) ──
+                texte_horaire = Paragraph(
+                    f"{heure_label}  —  {total_horaire} intention{'s' if total_horaire > 1 else ''}",
+                    s['horaire']
                 )
-                bandeau_horaire.setStyle(TableStyle([
-                    ('BACKGROUND',    (0,0),(-1,-1), GRIS_BLEU),
-                    ('TOPPADDING',    (0,0),(-1,-1), 5),
-                    ('BOTTOMPADDING', (0,0),(-1,-1), 5),
-                    ('LEFTPADDING',   (0,0),(-1,-1), 16),
-                ]))
-                blocs.append(bandeau_horaire)
+                blocs.append(texte_horaire)
+                blocs.append(Spacer(1, 0.15*cm))
 
                 # ── Pour chaque catégorie dans cet horaire ──
                 for cat in sorted(cats_de_cet_horaire.keys()):
                     items       = cats_de_cet_horaire[cat]
                     couleur_cat = CAT_COLORS.get(cat, VERT)
 
-                    # Bandeau catégorie (coloré, indenté)
-                    bandeau_cat = Table(
-                        [[Paragraph(f"   {cat}  ({len(items)})", s['cat'])]],
-                        colWidths=[doc.width],
-                    )
-                    bandeau_cat.setStyle(TableStyle([
-                        ('BACKGROUND',    (0,0),(-1,-1), couleur_cat),
-                        ('TOPPADDING',    (0,0),(-1,-1), 3),
-                        ('BOTTOMPADDING', (0,0),(-1,-1), 3),
-                        ('LEFTPADDING',   (0,0),(-1,-1), 24),
-                    ]))
-                    blocs.append(bandeau_cat)
+                    
 
                     # Tableau des intentions
-                    col_widths_tableau = [doc.width * 0.20, doc.width * 0.80]
+                    col_widths_tableau = [doc.width]
 
-                    table_data = [[
-                        Paragraph('<b>Catégorie</b>', s['cell_bold']),
-                        Paragraph('<b>Intention</b>', s['cell_bold']),
-                    ]]
                     for i in items:
-                        table_data.append([
-                            Paragraph(i.categorie or "—", s['cell']),
-                            Paragraph(i.intention  or "—", s['cell']),
-                        ])
+                        if i.categorie == "Action de grâce":
+                            table_data = [[
+                                Paragraph('<b>ACTION DE GRÂCE</b>', s['cell_bold']),
+                            ]]
+
+                        elif i.categorie == "Défunts":
+                            table_data = [[
+                                Paragraph('<b>DEFUNT</b>', s['cell_bold']),
+                            ]]
+
+                        else:
+                            table_data = [[
+                                Paragraph('<b>INTENTION(S)</b>', s['cell_bold']),
+                            ]]
+
+
+                    for i in items:
+                        if i.categorie == "Action de grâce":
+                            table_data.append([
+                                
+                                Paragraph("Messe d'action de grâce en l'honneur de " + i.intention  or "—", s['cell']),
+                            ])
+                        elif i.categorie == "Défunts":
+                            table_data.append([
+                                
+                                Paragraph("Messe pour le repos de l'âme de " + i.intention  or "—", s['cell']),
+                            ])
+
+                        else:
+                            table_data.append([
+                                
+                                Paragraph(i.intention  or "—", s['cell']),
+                            ])
 
                     tableau = Table(table_data, colWidths=col_widths_tableau, repeatRows=1)
 
                     tableau.setStyle(TableStyle([
                         ('BACKGROUND',     (0,0),(-1,0),  GRIS),
-                        ('BOTTOMPADDING',  (0,0),(-1,0),  5),
-                        ('TOPPADDING',     (0,0),(-1,0),  5),
+                        ('BOTTOMPADDING',  (0,0),(-1,0),  6),
+                        ('TOPPADDING',     (0,0),(-1,0),  6),
                         ('ROWBACKGROUNDS', (0,1),(-1,-1), [BLANC, GRIS]),
-                        ('TOPPADDING',     (0,1),(-1,-1), 4),
-                        ('BOTTOMPADDING',  (0,1),(-1,-1), 4),
+                        ('TOPPADDING',     (0,1),(-1,-1), 5),
+                        ('BOTTOMPADDING',  (0,1),(-1,-1), 5),
                         ('LEFTPADDING',    (0,0),(-1,-1), 6),
                         ('RIGHTPADDING',   (0,0),(-1,-1), 6),
                         ('VALIGN',         (0,0),(-1,-1), 'TOP'),
@@ -752,6 +758,7 @@ def _build_pdf(response, intentions_qs, label_periode, today):
                         ('LINEBELOW',      (0,0),(-1,0),  1,   couleur_cat),
                     ]))
                     blocs.append(tableau)
+                    blocs.append(Spacer(1, 0.25*cm))
 
             story.append(KeepTogether(blocs))
             story.append(Spacer(1, 0.7*cm))
@@ -766,10 +773,7 @@ def _build_pdf(response, intentions_qs, label_periode, today):
 
     doc.build(story)
 
-
-
 #  Vues
-
 
 @login_required
 def export_intentions_pdf(request):

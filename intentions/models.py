@@ -4,7 +4,7 @@ from liturgia import settings
 
 
 class Demandeur(models.Model):
-    nom = models.CharField(max_length=255)
+    nom = models.CharField(max_length=255, blank=True, null=True)
     telephone = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
@@ -61,14 +61,14 @@ class Intention(models.Model):
 
     def calculer_montant(self):
         if not self.date_debut:
-            return self.nombre * 100
+            return self.nombre * 2000
 
         # Convertir en objet date si nécessaire
         if isinstance(self.date_debut, str):
             try:
                 date_obj = datetime.strptime(self.date_debut, '%Y-%m-%d').date()
             except ValueError:
-                return self.nombre * 100
+                return self.nombre * 2000
         else:
             date_obj = self.date_debut
 
@@ -81,18 +81,18 @@ class Intention(models.Model):
         # weekday() : 0=lundi, 5=samedi, 6=dimanche
         jour = date_obj.weekday()
 
-        # Dimanche → 100
+        # Dimanche → 2000
         if jour == 6:
-            return self.nombre * 100
+            return self.nombre * 2000
 
-        # Samedi soir 19h00 → 100
+        # Samedi soir 19h00 → 2000
         if jour == 5 and self.horaire:
             from datetime import time
             if self.horaire.heure == time(19, 0):
-                return self.nombre * 100
+                return self.nombre * 2000
 
-        # Jours de semaine (lundi–samedi hors 19h00) → 100
-        return self.nombre * 100
+        # Jours de semaine (lundi–samedi hors 19h00) → 2000
+        return self.nombre * 2000
 
 
     def save(self, *args, **kwargs):
@@ -112,6 +112,7 @@ class MesseSpeciale(models.Model):
         ('Mariage', 'Mariage'),
         ('Diplôme', 'Diplôme'),
         ('Baptême bébé', 'Baptême bébé'),
+        ('Baptême adulte', 'Baptême adulte'),
     ]
 
     demandeur = models.ForeignKey(Demandeur, on_delete=models.CASCADE)
@@ -128,7 +129,7 @@ class MesseSpeciale(models.Model):
     def calculer_montant(self):
         if self.categorie in ['Action de grâce', 'Obsèques', 'Mariage', 'Diplôme']:
             return 10000
-        elif self.categorie == 'Baptême bébé':
+        elif self.categorie in ['Baptême bébé', 'Baptême adulte']:
             return 5500
         return 0
 
@@ -145,7 +146,8 @@ class AutreFrais(models.Model):
     CATEGORIES = [
         ('Denier de culte', 'Denier de culte'),
         ('Dîme', 'Dîme'),
-        ('Don', 'Don'),
+        ('Don simple', 'Don simple'),
+        ('Don hostie & vin', 'Don hostie & vin'),
         ('Caméra', 'Caméra'),
         ('Photo', 'Photo'),
     ]
@@ -162,7 +164,7 @@ class AutreFrais(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     CATEGORIES_MONTANT_FIXE = ['Caméra', 'Photo']
-    CATEGORIES_MONTANT_LIBRE = ['Denier de culte', 'Dîme', 'Don']
+    CATEGORIES_MONTANT_LIBRE = ['Denier de culte', 'Dîme', 'Don simple', 'Don hostie & vin']
 
     def save(self, *args, **kwargs):
         # Caméra/Photo : montant fixe automatique, pas de date obligatoire

@@ -35,16 +35,14 @@
                 </a>
             </div>
 
-            {% if request.user.is_superuser or request.user.role == 'cure' %}
-                <!-- Messes -->
-                <div class="nav-item">
-                    <a href="{% url 'messes' %}" 
-                    class="nav-link {% if request.resolver_match.url_name == 'messes' %}active{% endif %}">
-                        <i class="ri-calendar-line nav-icon"></i>
-                        <span>Messes</span>
-                    </a>
-                </div>
-            {% endif %}
+            <!-- Messes -->
+            <div class="nav-item">
+                <a href="{% url 'messes' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'messes' %}active{% endif %}">
+                    <i class="ri-calendar-line nav-icon"></i>
+                    <span>Messes</span>
+                </a>
+            </div>
 
             <!-- Intentions -->
             <div class="nav-item">
@@ -55,13 +53,13 @@
                 </a>
             </div>
 
-            <div class="nav-item">
+            <!-- <div class="nav-item">
                 <a href="{% url 'liste_demandes_faites' %}" 
                 class="nav-link {% if request.resolver_match.url_name == 'liste_demandes_faites' %}active{% endif %}">
                     <i class="ri-check-double-line nav-icon"></i>
                     <span>Demandes en ligne</span>
                 </a>
-            </div>
+            </div> -->
 
             <!-- libération, obsèques, mariage, baptême bébé -->
             <div class="nav-item">
@@ -97,6 +95,17 @@
                 class="nav-link {% if request.resolver_match.url_name == 'users' %}active{% endif %}">
                     <i class="ri-user-settings-line nav-icon"></i>
                     <span>Utilisateurs</span>
+                </a>
+            </div>
+            {% endif %}
+
+
+            {% if request.user.is_superuser or request.user.role == 'cure' %}
+            <div class="nav-item">
+                <a href="{% url 'garde_moto' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'garde_moto' %}active{% endif %}">
+                    <i class="ri-motorbike-line nav-icon"></i>
+                    <span>Garde moto</span>
                 </a>
             </div>
             {% endif %}

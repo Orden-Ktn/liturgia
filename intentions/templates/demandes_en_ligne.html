@@ -29,7 +29,7 @@
                         <td><em style="font-weight: bold;">({{ d.categorie|default:"-" }})</em> {{ d.intention }}</td>
                         <td>{{ d.date_debut }} - {{ d.horaire.get_jour_display }} {{ d.horaire.heure }}</td>
 
-                        <td>
+                        <td>a
                             {{ d.montant|floatformat:0 }} FCFA
                         </td>
 
@@ -44,7 +44,7 @@
                                     border-radius:20px;
                                     font-size:0.8rem;
                                 ">
-                                    ✓ Payé
+                                    Payé
                                 </span>
 
                             {% elif d.statut_paiement == 'en_attente' %}
@@ -56,7 +56,7 @@
                                     border-radius:20px;
                                     font-size:0.8rem;
                                 ">
-                                    ⏳ En attente
+                                    En attente
                                 </span>
 
                             {% elif d.statut_paiement == 'annule' %}
@@ -68,7 +68,7 @@
                                     border-radius:20px;
                                     font-size:0.8rem;
                                 ">
-                                    ⏳ En attente
+                                    Annulé
                                 </span>
 
                             {% elif d.statut_paiement == 'echoue' %}
@@ -80,7 +80,7 @@
                                     border-radius:20px;
                                     font-size:0.8rem;
                                 ">
-                                    ✕ Échec
+                                    Échec
                                 </span>
 
                             {% elif d.statut_paiement == 'expire' %}
@@ -92,7 +92,7 @@
                                     border-radius:20px;
                                     font-size:0.8rem;
                                 ">
-                                    Annulé
+                                    Expiré
                                 </span>
 
                             {% endif %}

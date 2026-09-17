@@ -1,4 +1,4 @@
-const CATS_MONTANT = ['Denier de culte', 'Dîme', 'Don'];
+const CATS_MONTANT = ['Denier de culte', 'Dîme', 'Don simple', 'Don hostie et vin'];
 const CATS_DATE = ['Caméra', 'Photo'];
 
 // Auto-fermeture des alertes après 5 secondes
@@ -102,6 +102,16 @@ document.querySelectorAll(".modal-overlay").forEach(function(overlay) {
 });
 
 
+function openModalAddGardeMoto() {
+    var modal = document.getElementById("modalAddGardeMoto");
+    if (modal) modal.style.display = "flex";
+}
+
+function closeModalAddGardeMoto() {
+    var modal = document.getElementById("modalAddGardeMoto");
+    if (modal) modal.style.display = "none";
+}
+
 
 /* ---- AJOUT DEMANDE ---- */
 function openModalDemande() {
@@ -183,7 +193,7 @@ function closeModalDeleteIntention() {
 
 
 /* ---- AJOUT AUTRE MESSE ---- */
-function openModalEditAutreMesse() {
+function openModalAutreMesse() {
     var modal = document.getElementById("modalAutreMesse");
     if (modal) modal.style.display = "flex";
 }

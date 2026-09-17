@@ -106,7 +106,12 @@
                     <tr>
                         <td>{{ i.role_enregistreur|default:"en ligne" }}</td>
                         <td>{{ i.demandeur.nom }}</td>
-                        <td><em style="font-weight: bold;">({{ i.categorie|default:"-" }})</em> {{ i.intention }}</td>
+                        <td>
+                            {% if i.categorie == "Action de grâce" %}
+                                Messe d'action de grâce en l'honneur de {{ i.intention }}</td>
+                            {% else %}
+                                Messe pour le repos de l'âme de {{ i.intention }}</td>
+                            {% endif %}
                         <td>{{ i.horaire.get_jour_display }} {{ i.horaire.heure }}</td>
                         <td>{{ i.date_debut }}</td>
                         <td>
