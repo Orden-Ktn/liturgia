@@ -37,6 +37,24 @@ def get_semaine_mercredi_mardi(d=None):
     return debut_semaine, fin_semaine
 
 
+def get_stats_semaine(debut_s, fin_s, label):
+    """Retourne le nombre de messes et le montant total pour une période donnée."""
+    stats = Intention.objects.filter(
+        date_debut__range=(debut_s, fin_s),
+        statut='validee'
+    ).aggregate(
+        nombre_messes=Count('id'),
+        montant_total=Sum('montant')
+    )
+    return {
+        'label': label,
+        'debut_semaine': debut_s,
+        'fin_semaine': fin_s,
+        'nombre_messes': stats['nombre_messes'] or 0,
+        'montant_total': stats['montant_total'] or 0,
+    }
+
+
 @login_required
 def dashboard(request):
     user = request.user
@@ -52,29 +70,27 @@ def dashboard(request):
     montant_messe_secretariat_cette_semaine = Intention.objects.filter(
         date_debut__range=(debut_semaine, fin_semaine),
         statut='validee'
-    ).aggregate(total=Sum("montant"))["total"] or 0
+    ).count()
 
-    # ===== DEUX DERNIÈRES SEMAINES (mercredi -> mardi) =====
+    # ===== SEMAINE EN COURS + SEMAINE PRÉCÉDENTE (déjà célébrées / en cours) =====
     semaines = []
-    for offset in [0, 1]:  # 0 = semaine en cours, 1 = semaine précédente
+    for offset in [0, 1]:  # 0 = en cours, 1 = précédente
         date_ref = today - timedelta(weeks=offset)
         debut_s, fin_s = get_semaine_mercredi_mardi(date_ref)
+        label = "Semaine en cours" if offset == 0 else "Semaine précédente"
+        semaines.append(get_stats_semaine(debut_s, fin_s, label))
 
-        stats_semaine = Intention.objects.filter(
-            date_debut__range=(debut_s, fin_s),
-            statut='validee'
-        ).aggregate(
-            nombre_messes=Count('id'),
-            montant_total=Sum('montant')
-        )
+    # ===== 2 SEMAINES À VENIR (messes déjà payées, à célébrer plus tard) =====
+    semaines_avenir = []
+    for offset in [1, 2]:  # 1 = semaine prochaine, 2 = dans 2 semaines
+        date_ref = today + timedelta(weeks=offset)
+        debut_s, fin_s = get_semaine_mercredi_mardi(date_ref)
+        label = "Semaine prochaine" if offset == 1 else "Dans 2 semaines"
+        semaines_avenir.append(get_stats_semaine(debut_s, fin_s, label))
 
-        semaines.append({
-            'label': "Semaine en cours" if offset == 0 else "Semaine précédente",
-            'debut_semaine': debut_s,
-            'fin_semaine': fin_s,
-            'nombre_messes': stats_semaine['nombre_messes'] or 0,
-            'montant_total': stats_semaine['montant_total'] or 0,
-        })
+    # Montant total déjà encaissé pour les messes à venir (à remettre / reverser)
+    montant_total_a_remettre = sum(s['montant_total'] for s in semaines_avenir)
+    nombre_total_messes_avenir = sum(s['nombre_messes'] for s in semaines_avenir)
 
     # mois courant
     intentions_ce_mois = Intention.objects.filter(
@@ -87,23 +103,18 @@ def dashboard(request):
         created_at__month=today.month
     ).count()
 
-    # DERNIÈRES DEMANDES
-    dernieres_intentions = Intention.objects.select_related(
-        "demandeur", "horaire"
-    ).filter(
-        statut='validee'
-    ).order_by("-created_at")[:10]
-
     context = {
         "total_messes": total_messes,
         "total_intentions_sg": total_intentions_sg,
         "total_intentions_ligne": total_intentions_ligne,
         'total_autre_messe': total_autre_messe,
         "intentions_ce_mois": intentions_ce_mois,
-        "dernieres_intentions": dernieres_intentions,
         "autre_messe_ce_mois": autre_messe_ce_mois,
         'montant_messe_secretariat_cette_semaine': montant_messe_secretariat_cette_semaine,
         'semaines': semaines,
+        'semaines_avenir': semaines_avenir,
+        'montant_total_a_remettre': montant_total_a_remettre,
+        'nombre_total_messes_avenir': nombre_total_messes_avenir,
     }
 
     return render(request, "dashboard.html", context)

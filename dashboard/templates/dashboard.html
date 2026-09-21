@@ -35,7 +35,7 @@
             </div>
             <div>
                 <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Demandes de messe cette semaine</p>
-                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_messe_secretariat_cette_semaine }} FCFA</p>
+                <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #2e2e2e; line-height: 1;">{{ montant_messe_secretariat_cette_semaine }}</p>
             </div>
         </div>
 
@@ -86,44 +86,41 @@
             </div>
         {% endfor %}
 
-    </div>
+        <!-- ===== CARTE RÉCAPITULATIVE : MONTANT À REMETTRE ===== -->
+        <div class="stat-card" style="background: #ffebee; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.04); grid-column: span 2;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="ri-hand-coin-line" style="font-size: 1.5rem; color: #e53935;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.78rem; color: #999; margin: 0 0 0.2rem;">Montant à remettre (messes payées à célébrer plus tard)</p>
+                    <p style="font-size: 1.8rem; font-weight: 700; margin: 0; color: #e53935; line-height: 1;">
+                        {{ montant_total_a_remettre }} FCFA
+                    </p>
+                    <p style="font-size: 0.75rem; color: #999; margin: 0.2rem 0 0;">
+                        {{ nombre_total_messes_avenir }} messe(s) concernée(s)
+                    </p>
+                </div>
+            </div>
 
-    <!-- ===== DERNIÈRES DEMANDES ===== -->
-    <div class="card" style="border-radius: 12px; padding: 1.5rem; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-        <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 1.25rem; color: #2e2e2e;">
-            <i class="ri-time-line" style="color: #fb8c00; margin-right: 0.4rem;"></i>
-            Dernières demandes
-        </h3>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Catégorie</th>
-                        <th>Intention</th>
-                        <th>Horaire</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in dernieres_intentions %}
-                    <tr>
-                        <td>{{ i.demandeur.nom }}</td>
-                        <td>{{ i.categorie|default:"—" }}</td>
-                        <td>{{ i.intention|truncatechars:40 }}</td>
-                        <td>{{ i.horaire.get_jour_display }} {{ i.horaire.heure }}</td>
-                        <td>{{ i.date_debut }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: #aaa;">Aucune demande enregistrée</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; border-top: 1px solid #f5c6cb; padding-top: 0.75rem;">
+                {% for semaine in semaines_avenir %}
+                <div>
+                    <p style="font-size: 0.72rem; color: #999; margin: 0;">{{ semaine.label }}</p>
+                    <p style="font-size: 0.8rem; font-weight: 600; margin: 0 0 0.3rem; color: #2e2e2e;">
+                        Du {{ semaine.debut_semaine|date:"d/m/Y" }} au {{ semaine.fin_semaine|date:"d/m/Y" }}
+                    </p>
+                    <p style="font-size: 0.85rem; margin: 0; color: #2e2e2e;">
+                        {{ semaine.nombre_messes }} messe(s) — <strong style="color: #e53935;">{{ semaine.montant_total }} FCFA</strong>
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
+
     </div>
 
+ 
 </div>
 
 <!-- Chart.js -->
