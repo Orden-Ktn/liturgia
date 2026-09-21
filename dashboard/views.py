@@ -210,6 +210,7 @@ def finance(request):
     ).aggregate(total=Sum("montant"))["total"] or 0
 
     montant_ce_mois = montant_messes_ce_mois_sans_doublon + montant_autre_messe_ce_mois + total_autres_frais_ce_mois
+
     # ===== SEMAINE EN COURS + SEMAINE PRÉCÉDENTE (compte, mercredi -> mardi) =====
     semaines = []
     for offset in [0, 1]:  # 0 = en cours, 1 = précédente
@@ -252,6 +253,7 @@ def finance(request):
         "total_don_ce_mois":            total_don_ce_mois,
         "total_camera_photo":           total_camera_photo,
         "montant_messe_cette_semaine":  montant_messe_cette_semaine,
+        "total_autres_frais_ce_mois":   total_autres_frais_ce_mois,
         # ===== NOUVEAU : semaines actuelle/précédente + surplus à venir =====
         "semaines":                     semaines,
         "semaines_avenir":              semaines_avenir,
