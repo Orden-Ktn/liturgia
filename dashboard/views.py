@@ -124,45 +124,45 @@ def dashboard(request):
 def finance(request):
     today = timezone.now().date()
 
-    debut_semaine = today - timedelta(days=today.weekday())
+    debut_semaine, fin_semaine = get_semaine_mercredi_mardi()
 
-    fin_semaine = debut_semaine + timedelta(days=6)
-
-    # Intentions de messe simples 
+    # Intentions de messe simples
     montant_intention_total = Intention.objects.filter(
         statut='validee'
     ).aggregate(
         total=Sum("montant")
     )["total"] or 0
 
-    debut_semaine, fin_semaine = get_semaine_mercredi_mardi()
-    
     montant_messe_cette_semaine = Intention.objects.filter(
         date_debut__range=(debut_semaine, fin_semaine),
         statut='validee'
     ).aggregate(total=Sum("montant"))["total"] or 0
 
-    #montants messes demandees cette semaine
+    # montants messes demandees cette semaine
     montant_messe_secretariat_cette_semaine = Intention.objects.filter(
-        date_debut__range=(debut_semaine, fin_semaine), statut='validee').aggregate(total=Sum("montant"))["total"] or 0
+        date_debut__range=(debut_semaine, fin_semaine), statut='validee'
+    ).aggregate(total=Sum("montant"))["total"] or 0
 
     montant_messe_en_ligne_cette_semaine = Intention.objects.filter(
-            date_debut__range=(debut_semaine, fin_semaine), statut_paiement='paye').aggregate(total=Sum("montant"))["total"] or 0
-    
+        date_debut__range=(debut_semaine, fin_semaine), statut_paiement='paye'
+    ).aggregate(total=Sum("montant"))["total"] or 0
+
     montant_messes_demandees_cette_semaine = montant_messe_secretariat_cette_semaine + montant_messe_en_ligne_cette_semaine
 
-    #montants messes demandees ce mois
+    # montants messes demandees ce mois
     montant_messe_secretariat_ce_mois = Intention.objects.filter(
-            date_debut__year=today.year,
-            date_debut__month=today.month, statut='validee').aggregate(total=Sum("montant"))["total"] or 0
-    
+        date_debut__year=today.year,
+        date_debut__month=today.month, statut='validee'
+    ).aggregate(total=Sum("montant"))["total"] or 0
+
     montant_messe_en_ligne_ce_mois = Intention.objects.filter(
-            date_debut__year=today.year,
-            date_debut__month=today.month, statut_paiement='paye').aggregate(total=Sum("montant"))["total"] or 0
-    
+        date_debut__year=today.year,
+        date_debut__month=today.month, statut_paiement='paye'
+    ).aggregate(total=Sum("montant"))["total"] or 0
+
     montant_messes_demandees_ce_mois = montant_messe_secretariat_ce_mois + montant_messe_en_ligne_ce_mois
 
-    # Autres messes (MesseSpeciale) 
+    # Autres messes (MesseSpeciale)
     montant_autre_messe_total = MesseSpeciale.objects.aggregate(
         total=Sum("montant")
     )["total"] or 0
@@ -172,7 +172,7 @@ def finance(request):
         date_evenement__month=today.month
     ).aggregate(total=Sum("montant"))["total"] or 0
 
-    # Autres frais (AutreFrais) 
+    # Autres frais (AutreFrais)
     def frais_total(categories):
         return AutreFrais.objects.filter(
             categorie__in=categories
@@ -203,7 +203,31 @@ def finance(request):
     ).aggregate(total=Sum("montant"))["total"] or 0
 
     montant_total    = montant_intention_total + montant_autre_messe_total + total_autres_frais
-    montant_ce_mois  = montant_messe_secretariat_ce_mois + montant_autre_messe_ce_mois + total_autres_frais_ce_mois
+    montant_messes_ce_mois_sans_doublon = Intention.objects.filter(
+        Q(statut='validee') | Q(statut_paiement='paye'),
+        date_debut__year=today.year,
+        date_debut__month=today.month
+    ).aggregate(total=Sum("montant"))["total"] or 0
+
+    montant_ce_mois = montant_messes_ce_mois_sans_doublon + montant_autre_messe_ce_mois + total_autres_frais_ce_mois
+    # ===== SEMAINE EN COURS + SEMAINE PRÉCÉDENTE (compte, mercredi -> mardi) =====
+    semaines = []
+    for offset in [0, 1]:  # 0 = en cours, 1 = précédente
+        date_ref = today - timedelta(weeks=offset)
+        debut_s, fin_s = get_semaine_mercredi_mardi(date_ref)
+        label = "Semaine en cours" if offset == 0 else "Semaine précédente"
+        semaines.append(get_stats_semaine(debut_s, fin_s, label))
+
+    # ===== SURPLUS SUR LES SEMAINES À VENIR (messes déjà payées, à célébrer plus tard) =====
+    semaines_avenir = []
+    for offset in [1, 2]:  # 1 = semaine prochaine, 2 = dans 2 semaines
+        date_ref = today + timedelta(weeks=offset)
+        debut_s, fin_s = get_semaine_mercredi_mardi(date_ref)
+        label = "Semaine prochaine" if offset == 1 else "Dans 2 semaines"
+        semaines_avenir.append(get_stats_semaine(debut_s, fin_s, label))
+
+    montant_total_a_remettre = sum(s['montant_total'] for s in semaines_avenir)
+    nombre_total_messes_avenir = sum(s['nombre_messes'] for s in semaines_avenir)
 
     return render(request, "finance.html", {
         # Globaux
@@ -228,9 +252,14 @@ def finance(request):
         "total_don_ce_mois":            total_don_ce_mois,
         "total_camera_photo":           total_camera_photo,
         "montant_messe_cette_semaine":  montant_messe_cette_semaine,
+        # ===== NOUVEAU : semaines actuelle/précédente + surplus à venir =====
+        "semaines":                     semaines,
+        "semaines_avenir":              semaines_avenir,
+        "montant_total_a_remettre":     montant_total_a_remettre,
+        "nombre_total_messes_avenir":   nombre_total_messes_avenir,
     })
 
-    
+
 def deconnexion(request):
     logout(request)
     return redirect('login')
